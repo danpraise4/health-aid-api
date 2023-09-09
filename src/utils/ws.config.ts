@@ -6,10 +6,10 @@ import RedisClient from './redis';
 import config from '../../config/default';
 import { WS_EVENT } from '../../config/constants';
 import mongoose from 'mongoose';
-import PatientService from '../services/patient.service';
+import UserService from '../services/patient.service';
 import HealthWorker from '../database/models/health_worker.model';
 import Patient from '../database/models/patient.model';
-const patientService = new PatientService();
+const userService = new UserService();
 
 export default class WS {
   public io: Server;
@@ -108,9 +108,9 @@ export async function socketUserMiddleware(
     if (!mongoose.Types.ObjectId.isValid(user))
       throw new Error('invalid Id format ');
     let user_details: Patient | HealthWorker;
-    user_details = await patientService.getPatientById(user);
+    user_details = await userService.getPatientById(user);
     if (!user_details) {
-      user_details = await patientService.getOne(HealthWorker, {
+      user_details = await userService.getOne(HealthWorker, {
         _id: user,
       });
       if (!user_details) throw new Error('Oops!, Patient not found');

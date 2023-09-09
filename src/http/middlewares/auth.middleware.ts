@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import AppException from '../../exceptions/AppException';
 import TokenService from '../../services/token.service';
-import PatientService from '../../services/patient.service';
+import UserService from '../../services/patient.service';
 import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AdminService from '../../services/admin.service';
@@ -14,7 +14,7 @@ export type RequestType = {
   [prop: string]: any;
 } & Request;
 
-export const isPatientAuthenticated = async (
+export const isUserAuthenticated = async (
   req: RequestType,
   _res: Response,
   next: NextFunction,
@@ -41,9 +41,9 @@ export const isPatientAuthenticated = async (
         new AppException('Oops!, wrong token type', httpStatus.FORBIDDEN),
       );
     let user: Patient | HealthWorker;
-    user = await new PatientService().getPatientById(sub);
+    user = await new UserService().getPatientById(sub);
     if (!user) {
-      user = await new PatientService().getOne(HealthWorker, { _id: sub });
+      user = await new UserService().getOne(HealthWorker, { _id: sub });
       if (!user)
         return next(
           new AppException(

@@ -5,11 +5,11 @@
 import AdminService from '../../services/admin.service';
 import EmailService from '../../services/email.service';
 import EncryptionService from '../../services/encryption.service';
-import PatientService from '../../services/patient.service';
+import UserService from '../../services/patient.service';
 import AdminController from './admin.controller';
-import PatientController from './patient.controller';
+import UserController from './user.controller';
 
-export const patientController = new PatientController(new PatientService());
+export const userController = new UserController(new UserService());
 
 export const adminController = new AdminController(
   new AdminService(),
