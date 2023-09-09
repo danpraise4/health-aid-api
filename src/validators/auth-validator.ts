@@ -179,12 +179,10 @@ export const updatePatientAccount = {
   body: Joi.object().keys({
     firstName: Joi.string().min(3).lowercase().max(40).optional(),
     lastName: Joi.string().min(3).lowercase().max(40).optional(),
-    dob: Joi.date().optional(),
     phoneNumber: Joi.string().max(15).strict().optional().messages({
       'string.optional': 'Oops!, you have to specify a phone number',
     }),
     residentialAddress: Joi.string().optional(),
-    allowPushNotification: Joi.boolean().optional(),
     avatar: Joi.string().optional(),
     role: Joi.string()
       .optional()

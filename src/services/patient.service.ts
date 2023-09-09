@@ -3,7 +3,7 @@ import Patient from '../database/models/patient.model';
 import mongoose from 'mongoose';
 import BaseService from './base.service';
 
-export default class PatientService extends BaseService {
+export default class UserService extends BaseService {
   constructor() {
     super();
   }

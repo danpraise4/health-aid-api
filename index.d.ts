@@ -113,7 +113,8 @@ interface HealthWorker extends AuditableFields {
     reason: string;
   };
   lastLogin?: Date;
-  healthWorkerLicenseNumber?: string;
+  specialization: string[];
+  experience: string[];
   location: {
     latitude: number;
     longitude: number;
@@ -123,25 +124,22 @@ interface HealthWorker extends AuditableFields {
   };
   kyc: {
     driversLicense: {
-      number: string;
+      number: number;
       image: {
         url: string;
         publicId: string;
       };
     };
     medicalLicense: {
-      number: string;
+      number: number;
       image: {
         url: string;
         publicId: string;
       };
     };
     medicalCertificate: {
-      number: string;
-      image: {
-        url: string;
-        publicId: string;
-      };
+      url: string;
+      publicId: string;
     };
     certifications: {
       name: string;

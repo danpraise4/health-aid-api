@@ -11,7 +11,7 @@ import Patient from '../../../database/models/patient.model';
 // import SendChamp from '../../../services/sendchamp/index';
 import HealthWorker from '../../../database/models/health_worker.model';
 import EmailService from '../../../services/email.service';
-import PatientService from '../../../services/patient.service';
+import UserService from '../../../services/patient.service';
 // const sendChamp = new SendChamp({
 //   mode: config.sendChamp.mode,
 //   publicKey: config.sendChamp.apiKey,
@@ -19,7 +19,7 @@ import PatientService from '../../../services/patient.service';
 export default class PatientAuth {
   constructor(
     private readonly authService: AuthService,
-    private readonly patientService: PatientService,
+    private readonly userService: UserService,
     private readonly encryptionService: EncryptionService,
     private readonly emailService: EmailService,
   ) {}
@@ -32,24 +32,24 @@ export default class PatientAuth {
 
       if (req.body.email) {
         let emailTaken: Patient | HealthWorker;
-        emailTaken = await this.patientService.getPatientDetail({
+        emailTaken = await this.userService.getPatientDetail({
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
-        emailTaken = await this.patientService.getOne(HealthWorker, {
+        emailTaken = await this.userService.getOne(HealthWorker, {
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
       }
       delete req.body.confirmPassword;
       let phoneNumberTaken: Patient | HealthWorker;
-      phoneNumberTaken = await this.patientService.getPatientDetail({
+      phoneNumberTaken = await this.userService.getPatientDetail({
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
         throw new Error(`Oops!, ${phoneNumberTaken.phoneNumber} is taken`);
 
-      phoneNumberTaken = await this.patientService.getOne(HealthWorker, {
+      phoneNumberTaken = await this.userService.getOne(HealthWorker, {
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
@@ -60,11 +60,11 @@ export default class PatientAuth {
       req.body.referralCode = HelperClass.generateRandomChar(6, 'upper-num');
       if (req.body.inviteCode) {
         let user: Patient | HealthWorker;
-        user = await this.patientService.getPatientDetail({
+        user = await this.userService.getPatientDetail({
           referralCode: req.body.inviteCode,
         });
         if (!user) {
-          user = await this.patientService.getOne(HealthWorker, {
+          user = await this.userService.getOne(HealthWorker, {
             referralCode: req.body.inviteCode,
           });
           if (!user) throw new Error(`Oops!, invalid referral code`);
@@ -161,10 +161,10 @@ export default class PatientAuth {
       );
 
       user.portfolio === PORTFOLIO.PATIENT
-        ? await this.patientService.updatePatientById(user.id, {
+        ? await this.userService.updatePatientById(user.id, {
             pushNotificationId: req.body.pushNotificationId,
           })
-        : await this.patientService.update(
+        : await this.userService.update(
             HealthWorker,
             { _id: user.id },
             {
@@ -249,7 +249,7 @@ export default class PatientAuth {
         verificationToken: hashedToken,
         verificationTokenExpiry: moment().add('10', 'minutes').utc().toDate(),
       };
-      await this.patientService.updatePatientById(patient.id, updateBody);
+      await this.userService.updatePatientById(patient.id, updateBody);
       // await this.sendOtp({
       //   phoneNumber: Patient.phoneNumber,
       //   firstName: Patient.firstName,
@@ -292,7 +292,7 @@ export default class PatientAuth {
       const token = await this.authService.login(
         Patient as unknown as { [key: string]: string },
       );
-      await this.patientService.updatePatientById(patient.id, {
+      await this.userService.updatePatientById(patient.id, {
         pushNotificationId: req.body.pushNotificationId,
       });
       return res.status(httpStatus.OK).json({
@@ -313,11 +313,11 @@ export default class PatientAuth {
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
       let user: Patient | HealthWorker;
-      user = await this.patientService.getPatientDetail({
+      user = await this.userService.getPatientDetail({
         email: req.body.email,
       });
       if (!user) {
-        user = await this.patientService.getOne(HealthWorker, {
+        user = await this.userService.getOne(HealthWorker, {
           email: req.body.email,
         });
       }
@@ -331,7 +331,7 @@ export default class PatientAuth {
         passwordResetToken: hashedToken,
         passwordResetTokenExpiresAt: moment().add(10, 'minutes').utc().toDate(),
       };
-      await this.patientService.updatePatientById(user.id, updateBody);
+      await this.userService.updatePatientById(user.id, updateBody);
       // if (config.enviroment === 'production') {
       //   await this.sendOtp({
       //     phoneNumber: Patient.phoneNumber,
@@ -361,11 +361,11 @@ export default class PatientAuth {
         req.body.token,
       );
       let user: Patient | HealthWorker;
-      user = await this.patientService.getPatientDetail({
+      user = await this.userService.getPatientDetail({
         passwordResetToken: hashedToken,
       });
       if (!user) {
-        user = await this.patientService.getOne(HealthWorker, {
+        user = await this.userService.getOne(HealthWorker, {
           passwordResetToken: hashedToken,
         });
       }
@@ -385,8 +385,8 @@ export default class PatientAuth {
       };
 
       user.portfolio === PORTFOLIO.PATIENT
-        ? await this.patientService.updatePatientById(user.id, updateBody)
-        : await this.patientService.update(
+        ? await this.userService.updatePatientById(user.id, updateBody)
+        : await this.userService.update(
             HealthWorker,
             { _id: user.id },
             updateBody,
@@ -406,11 +406,11 @@ export default class PatientAuth {
     try {
       const { inviteCode } = req.body;
       let user: Patient | HealthWorker;
-      user = await this.patientService.getPatientDetail({
+      user = await this.userService.getPatientDetail({
         referralCode: inviteCode,
       });
       if (!user) {
-        user = await this.patientService.getOne(HealthWorker, {
+        user = await this.userService.getOne(HealthWorker, {
           referralCode: inviteCode,
         });
       }
@@ -441,12 +441,12 @@ export default class PatientAuth {
         req.body.otp,
       );
       let user: Patient | HealthWorker;
-      user = await this.patientService.getPatientDetail({
+      user = await this.userService.getPatientDetail({
         'accountStatus.status': ACCOUNT_STATUS.PENDING,
         verificationToken: _hashedEmailToken,
       } as Record<string, unknown>);
       if (!user) {
-        user = await this.patientService.getOne(HealthWorker, {
+        user = await this.userService.getOne(HealthWorker, {
           'accountStatus.status': ACCOUNT_STATUS.PENDING,
           verificationToken: _hashedEmailToken,
         } as Record<string, unknown>);
@@ -474,12 +474,8 @@ export default class PatientAuth {
         },
       };
       user.portfolio === PORTFOLIO.PATIENT
-        ? await this.patientService.updatePatientById(user.id, data)
-        : await this.patientService.update(
-            HealthWorker,
-            { _id: user.id },
-            data,
-          );
+        ? await this.userService.updatePatientById(user.id, data)
+        : await this.userService.update(HealthWorker, { _id: user.id }, data);
       return res.status(httpStatus.OK).json({
         status: `success`,
         message: `Your account has been verified`,

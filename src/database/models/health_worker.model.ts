@@ -96,6 +96,8 @@ const HealthWorkerSchema = new Schema<HealthWorker>(
       },
       reason: String,
     },
+    specialization: [String],
+    experience: [String],
     systemCode: String,
     location: {
       latitude: Number,
@@ -106,25 +108,22 @@ const HealthWorkerSchema = new Schema<HealthWorker>(
     },
     kyc: {
       driversLicense: {
-        number: String,
+        number: Number,
         image: {
           url: String,
           publicId: String,
         },
       },
       medicalLicense: {
-        number: String,
+        number: Number,
         image: {
           url: String,
           publicId: String,
         },
       },
       medicalCertificate: {
-        number: String,
-        image: {
-          url: String,
-          publicId: String,
-        },
+        url: String,
+        publicId: String,
       },
       certifications: [
         {

@@ -6,15 +6,15 @@ import { RequestType } from '../middlewares/auth.middleware';
 import pick from '../../utils/pick';
 import HelperClass from '../../utils/helper';
 import { UploadApiResponse } from 'cloudinary';
-import PatientService from '../../services/patient.service';
+import UserService from '../../services/patient.service';
 import NotificationService from '../../services/notification.service';
 import { deleteFile, uploadBase64File } from '../../services/file.service';
 import HealthWorker from '../../database/models/health_worker.model';
 import { PORTFOLIO } from '../../../config/constants';
 import Patient from '../../database/models/patient.model';
 
-export default class PatientController {
-  constructor(private readonly patientService: PatientService) {}
+export default class UserController {
+  constructor(private readonly userService: UserService) {}
   async getAllPatients(req: RequestType, res: Response, next: NextFunction) {
     try {
       const options = pick(req.query, ['limit', 'page', 'populate', 'orderBy']);
@@ -29,7 +29,7 @@ export default class PatientController {
         });
       }
 
-      const patient = await this.patientService.getAllPatients(filter, options);
+      const patient = await this.userService.getAllPatients(filter, options);
       return res.status(httpStatus.OK).json({
         status: 'success',
         patient,
@@ -43,9 +43,9 @@ export default class PatientController {
   async getMyProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
       let me: Patient | HealthWorker;
-      me = await this.patientService.getPatientById(req.user.id, true);
+      me = await this.userService.getPatientById(req.user.id, true);
       if (!me) {
-        me = await this.patientService.getOne(HealthWorker, {
+        me = await this.userService.getOne(HealthWorker, {
           _id: req.user.id,
         });
         if (!me) throw new Error('Patient not found');
@@ -76,11 +76,8 @@ export default class PatientController {
       }
       let me;
       req.user.portfolio === PORTFOLIO.PATIENT
-        ? (me = await this.patientService.updatePatientById(
-            req.user.id,
-            req.body,
-          ))
-        : (me = await this.patientService.update(
+        ? (me = await this.userService.updatePatientById(req.user.id, req.body))
+        : (me = await this.userService.update(
             HealthWorker,
             { _id: req.user.id },
             req.body,
@@ -105,10 +102,10 @@ export default class PatientController {
       );
       let me;
       req.user.portfolio === PORTFOLIO.PATIENT
-        ? (me = await this.patientService.updatePatientById(req.user.id, {
+        ? (me = await this.userService.updatePatientById(req.user.id, {
             avatar: { url: secure_url, publicId: public_id },
           }))
-        : (me = await this.patientService.update(
+        : (me = await this.userService.update(
             HealthWorker,
             { _id: req.user.id },
             {
@@ -129,12 +126,12 @@ export default class PatientController {
   async getPatientProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
       let user: Patient | HealthWorker;
-      user = await this.patientService.getOne(Patient, {
-        _id: req.params.patient,
+      user = await this.userService.getOne(Patient, {
+        _id: req.params.userId,
       });
       if (!user) {
-        user = await this.patientService.getOne(HealthWorker, {
-          _id: req.params.patient,
+        user = await this.userService.getOne(HealthWorker, {
+          _id: req.params.userId,
         });
         if (!user) throw new Error('User not found');
       }
@@ -159,7 +156,7 @@ export default class PatientController {
           { systemCode: { $regex: req.query.q, $options: 'i' } },
         ],
       });
-      const user = await this.patientService.searchPatients(filter);
+      const user = await this.userService.searchPatients(filter);
       return res.status(httpStatus.OK).json({
         status: 'success',
         user,
@@ -176,7 +173,7 @@ export default class PatientController {
     next: NextFunction,
   ) {
     try {
-      const data = await this.patientService.savePatientDeviceInfo(
+      const data = await this.userService.savePatientDeviceInfo(
         req.body,
         req.user,
       );
@@ -197,6 +194,70 @@ export default class PatientController {
       const data = await NotificationService.getAllNotifications(
         filter,
         options,
+      );
+      return res.status(httpStatus.OK).json({
+        status: 'success',
+        data,
+      });
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof AppException)
+        return next(new AppException(err.message, httpStatus.BAD_REQUEST));
+    }
+  }
+
+  async completeProfile(req: RequestType, res: Response, next: NextFunction) {
+    try {
+      const uploadDriversLicense = await uploadBase64File(
+        req.body.kyc.driversLicense.image,
+        'health_workers_kyc',
+        HelperClass.generateRandomChar(5),
+      );
+      req.body.kyc.driversLicense.image = {
+        url: uploadDriversLicense.secure_url,
+        publicId: uploadDriversLicense.public_id,
+      };
+
+      const uploadMedicalLicense = await uploadBase64File(
+        req.body.kyc.medicalLicense.image,
+        'health_workers_kyc',
+        HelperClass.generateRandomChar(5),
+      );
+      req.body.kyc.medicalLicense.image = {
+        url: uploadMedicalLicense.secure_url,
+        publicId: uploadMedicalLicense.public_id,
+      };
+
+      const uploadMedicalCertificate = await uploadBase64File(
+        req.body.kyc.medicalCertificate.image,
+        'health_workers_kyc',
+        HelperClass.generateRandomChar(5),
+      );
+      req.body.kyc.medicalCertificate = {
+        url: uploadMedicalCertificate.secure_url,
+        publicId: uploadMedicalCertificate.public_id,
+      };
+
+      const certifications = [];
+      for (const cert of req.body.kyc.certifications) {
+        const uploadCert = await uploadBase64File(
+          cert.image,
+          'health_workers_kyc',
+          HelperClass.generateRandomChar(5),
+        );
+        certifications.push({
+          name: cert.name,
+          image: {
+            url: uploadCert.secure_url,
+            publicId: uploadCert.public_id,
+          },
+        });
+      }
+      req.body.kyc.certifications = certifications;
+
+      const data = await this.userService.update(
+        HealthWorker,
+        { id: req.body.healthWorker },
+        req.body,
       );
       return res.status(httpStatus.OK).json({
         status: 'success',
