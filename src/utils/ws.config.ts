@@ -7,7 +7,8 @@ import config from '../../config/default';
 import { WS_EVENT } from '../../config/constants';
 import mongoose from 'mongoose';
 import PatientService from '../services/patient.service';
-import Doctor from '../database/models/healthworker.model';
+import HealthWorker from '../database/models/health_worker.model';
+import Patient from '../database/models/patient.model';
 const patientService = new PatientService();
 
 export default class WS {
@@ -76,7 +77,7 @@ export default class WS {
       (data: { roomName: string; location: { [key: string]: string } }) => {
         log.info(data);
         log.info(
-          `Message from ${socket.id} to room ${data.roomName}: The Doctors current longitude is ${data.location.longitude} and latitude is ${data.location.latitude}`,
+          `Message from ${socket.id} to room ${data.roomName}: The HealthWorkers current longitude is ${data.location.longitude} and latitude is ${data.location.latitude}`,
         );
         socket.broadcast
           .to(data.roomName)
@@ -101,17 +102,20 @@ export async function socketUserMiddleware(
   next: (err?: Error) => void,
 ) {
   try {
-    let { Patient } = socket.handshake.query;
-    Patient = Patient as string;
-    if (!Patient) throw new Error('Oops!, Patient must be provided');
-    if (!mongoose.Types.ObjectId.isValid(Patient))
+    let { user } = socket.handshake.query;
+    user = user as string;
+    if (!user) throw new Error('Oops!, user must be provided');
+    if (!mongoose.Types.ObjectId.isValid(user))
       throw new Error('invalid Id format ');
-    let Patient_details = await patientService.getPatientById(Patient);
-    if (!Patient_details) {
-      Patient_details = await patientService.getOne(Doctor, { _id: Patient });
-      if (!Patient_details) throw new Error('Oops!, Patient not found');
+    let user_details: Patient | HealthWorker;
+    user_details = await patientService.getPatientById(user);
+    if (!user_details) {
+      user_details = await patientService.getOne(HealthWorker, {
+        _id: user,
+      });
+      if (!user_details) throw new Error('Oops!, Patient not found');
     }
-    socket.handshake.query.Patient = Patient_details.id;
+    socket.handshake.query.Patient = user_details.id;
     next();
   } catch (error) {
     log.error(error);

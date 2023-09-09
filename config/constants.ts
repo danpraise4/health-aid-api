@@ -13,7 +13,14 @@ export enum ACCOUNT_STATUS {
 
 export enum PORTFOLIO {
   PATIENT = 'patient',
+  HEALTH_WORKER = 'health_worker',
+}
+
+export enum HEALTH_WORKER_TYPE {
   DOCTOR = 'doctor',
+  NURSE = 'nurse',
+  PHARMACIST = 'pharmacist',
+  LAB_SCIENTIST = 'lab_scientist',
 }
 
 export enum PAYMENT_SOURCE {
@@ -203,14 +210,14 @@ export enum WS_EVENT {
   INITIATE_RIDE_SUBSCRIPTION_REQUEST = 'initiate_ride_subscription_request',
   INITIATE_RIDE_SUBSCRIPTION_RESPONSE = 'initiate_ride_subscription_response',
   INITIATE_RIDE_HIRE_REQUEST = 'initiate_ride_hire_request',
-  UPDATE_Doctor_LOCATION = 'update_Doctor_location',
+  UPDATE_HealthWorker_LOCATION = 'update_HealthWorker_location',
   UPDATE_Patient_LOCATION = 'update_Patient_location',
   JOIN_ROOM = 'join_room',
   SEND_LIVE_LOCATION = 'send_live_location',
   RECEIVE_LIVE_LOCATION = 'receive_live_location',
   ACCEPT_RIDE_HIRE_REQUEST = 'accept_ride_hire_request',
   ACCEPT_RIDE_SUBSCRIPTION_REQUEST = 'accept_ride_subscription_request',
-  GET_NEARBY_DoctorS = 'get_nearby_Doctors',
+  GET_NEARBY_HealthWorkerS = 'get_nearby_HealthWorkers',
   IN_APP_TRANSFER_REQUEST = 'in_app_transfer_request',
   IN_APP_TRANSFER_RESPONSE = 'in_app_transfer_response',
   GET_Patient_WALLET_BY_SYSTEM_CODE = 'get_Patient_wallet_by_system_code',
@@ -222,9 +229,9 @@ export enum MIXPANEL_EVENTS {
   SIGNUP = 'Patient Signed Up',
   VERIFY_ACCOUNT = 'Patient Verified Account',
   RIDE_REQUEST = 'Patient requested ride',
-  Doctor_ACCEPTED_RIDE_REQUEST = 'Doctor accepted ride request',
-  Doctor_CANCELLED_RIDE = 'Doctor cancelled ride',
-  Doctor_COMPLETED_RIDE = 'Doctor completed ride',
+  HealthWorker_ACCEPTED_RIDE_REQUEST = 'HealthWorker accepted ride request',
+  HealthWorker_CANCELLED_RIDE = 'HealthWorker cancelled ride',
+  HealthWorker_COMPLETED_RIDE = 'HealthWorker completed ride',
   WITHDRAW = 'Patient Withdraws money',
   INITIATE_CARD_PAYMENT = 'Patient initiates card payment',
   IN_APP_PAYMENT = 'Patient makes in-app payment',
@@ -233,8 +240,8 @@ export enum MIXPANEL_EVENTS {
   CREATE_INDIVIDUAL_RIDE_SUBSCRIPTION = 'Patient creates individual ride subscription',
   JOIN_GROUP_RIDE_SUBSCRIPTION = 'Patient joins group ride subscription',
   INITIATE_RIDE_HIRE_REQUEST = 'Patient initiates ride hire request',
-  ACCEPT_RIDE_HIRE_REQUEST = 'Doctor accepts ride hire request',
+  ACCEPT_RIDE_HIRE_REQUEST = 'HealthWorker accepts ride hire request',
   ADDED_TO_GROUP_RIDE_SUBSCRIPTION = 'Patient added to group ride subscription',
   INITIATE_CARD_PAYMENT_FOR_RIDE_SUBSCRIPTION = 'Patient initiates card payment for ride subscription',
-  ACCEPT_RIDE_SUBSCRIPTION_REQUEST = 'Doctor accepts ride subscription request',
+  ACCEPT_RIDE_SUBSCRIPTION_REQUEST = 'HealthWorker accepts ride subscription request',
 }

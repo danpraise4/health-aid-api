@@ -1,5 +1,10 @@
 import Joi from 'joi';
-import { ADMIN_ROLE, GENDER, PORTFOLIO } from '../../config/constants';
+import {
+  ADMIN_ROLE,
+  GENDER,
+  HEALTH_WORKER_TYPE,
+  PORTFOLIO,
+} from '../../config/constants';
 
 export const LoginValidator = {
   body: Joi.object().keys({
@@ -50,7 +55,7 @@ export const AdminLoginValidator = {
   }),
 };
 
-export const CreatePatientValidator = {
+export const createUserValidator = {
   body: Joi.object().keys({
     firstName: Joi.string().min(3).lowercase().max(40).required(),
     lastName: Joi.string().min(3).lowercase().max(40).required(),
@@ -93,17 +98,11 @@ export const CreatePatientValidator = {
       .required()
       .valid(...Object.values(GENDER)),
     inviteCode: Joi.string().optional(),
-    meta: Joi.when('portfolio', {
-      is: PORTFOLIO.DOCTOR,
-      then: Joi.object().keys({
-        bankName: Joi.string().required(),
-        accountNumber: Joi.string().required(),
-        DoctorLicenseNumber: Joi.string().required(),
-        carModel: Joi.string().required(),
-        carBrand: Joi.string().required(),
-        carColor: Joi.string().required(),
-        carPlateNumber: Joi.string().required(),
-      }),
+    healthWorkerType: Joi.when('portfolio', {
+      is: PORTFOLIO.HEALTH_WORKER,
+      then: Joi.string()
+        .required()
+        .valid(...Object.values(HEALTH_WORKER_TYPE)),
     }),
   }),
 };

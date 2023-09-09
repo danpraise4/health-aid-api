@@ -9,7 +9,7 @@ import { ACCOUNT_STATUS, PORTFOLIO } from '../../../../config/constants';
 import AppException from '../../../exceptions/AppException';
 import Patient from '../../../database/models/patient.model';
 // import SendChamp from '../../../services/sendchamp/index';
-import Doctor from '../../../database/models/healthworker.model';
+import HealthWorker from '../../../database/models/health_worker.model';
 import EmailService from '../../../services/email.service';
 import PatientService from '../../../services/patient.service';
 // const sendChamp = new SendChamp({
@@ -31,23 +31,25 @@ export default class PatientAuth {
         : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
 
       if (req.body.email) {
-        let emailTaken = await this.patientService.getPatientDetail({
+        let emailTaken: Patient | HealthWorker;
+        emailTaken = await this.patientService.getPatientDetail({
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
-        emailTaken = await this.patientService.getOne(Doctor, {
+        emailTaken = await this.patientService.getOne(HealthWorker, {
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
       }
       delete req.body.confirmPassword;
-      let phoneNumberTaken = await this.patientService.getPatientDetail({
+      let phoneNumberTaken: Patient | HealthWorker;
+      phoneNumberTaken = await this.patientService.getPatientDetail({
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
         throw new Error(`Oops!, ${phoneNumberTaken.phoneNumber} is taken`);
 
-      phoneNumberTaken = await this.patientService.getOne(Doctor, {
+      phoneNumberTaken = await this.patientService.getOne(HealthWorker, {
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
@@ -57,14 +59,15 @@ export default class PatientAuth {
       // req.body.lastName = HelperClass.titleCase(req.body.lastName);
       req.body.referralCode = HelperClass.generateRandomChar(6, 'upper-num');
       if (req.body.inviteCode) {
-        let patient = await this.patientService.getPatientDetail({
+        let user: Patient | HealthWorker;
+        user = await this.patientService.getPatientDetail({
           referralCode: req.body.inviteCode,
         });
-        if (!patient) {
-          patient = await this.patientService.getOne(Doctor, {
+        if (!user) {
+          user = await this.patientService.getOne(HealthWorker, {
             referralCode: req.body.inviteCode,
           });
-          if (!patient) throw new Error(`Oops!, invalid referral code`);
+          if (!user) throw new Error(`Oops!, invalid referral code`);
         }
       }
       req.body.accountStatus = {
@@ -86,10 +89,13 @@ export default class PatientAuth {
         .add('1', 'day')
         .utc()
         .toDate();
-      let patient: Patient | Doctor;
+      let patient: Patient | HealthWorker;
       req.body.portfolio === PORTFOLIO.PATIENT
         ? (patient = await this.authService.create<Patient>(req.body, Patient))
-        : (patient = await this.authService.create<Doctor>(req.body, Doctor));
+        : (patient = await this.authService.create<HealthWorker>(
+            req.body,
+            HealthWorker,
+          ));
 
       /** Send verification code to Patient */
       // if (config.env === 'production') {
@@ -130,41 +136,42 @@ export default class PatientAuth {
       // req.body.phoneNumber = req.body.phoneNumber.startsWith('+234')
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
-      let patient = await Patient.findOne({
+      let user: Patient | HealthWorker;
+      user = await Patient.findOne({
         email: req.body.email,
       }).select('+password');
-      if (!patient) {
-        patient = await Doctor.findOne({
+      if (!user) {
+        user = await HealthWorker.findOne({
           email: req.body.email,
         }).select('+password');
         if (!Patient) throw new Error('Oops! invalid login credentials');
       }
       if (
         !(await this.encryptionService.comparePassword(
-          patient.password,
+          user.password,
           req.body.password,
         ))
       )
         throw new Error('Oops! invalid login credentials');
 
-      if (patient.accountStatus.status !== ACCOUNT_STATUS.CONFIRMED)
+      if (user.accountStatus.status !== ACCOUNT_STATUS.CONFIRMED)
         throw Error('Oops! account is not verified');
       const token = await this.authService.login(
         Patient as unknown as { [key: string]: string },
       );
 
-      patient.portfolio === PORTFOLIO.PATIENT
-        ? await this.patientService.updatePatientById(patient.id, {
+      user.portfolio === PORTFOLIO.PATIENT
+        ? await this.patientService.updatePatientById(user.id, {
             pushNotificationId: req.body.pushNotificationId,
           })
         : await this.patientService.update(
-            Doctor,
-            { _id: patient.id },
+            HealthWorker,
+            { _id: user.id },
             {
               pushNotificationId: req.body.pushNotificationId,
             },
           );
-      return res.status(httpStatus.ACCEPTED).json({ patient, token });
+      return res.status(httpStatus.ACCEPTED).json({ user, token });
     } catch (err: unknown) {
       if (err instanceof AppException || err instanceof Error)
         return next(new AppException(err.message, httpStatus.BAD_REQUEST));
@@ -225,7 +232,7 @@ export default class PatientAuth {
         email: req.body.email,
       });
       if (!patient) {
-        patient = await Doctor.findOne({
+        patient = await HealthWorker.findOne({
           email: req.body.email,
         });
       }
@@ -272,7 +279,7 @@ export default class PatientAuth {
         verificationToken: hashedOtp,
       });
       if (!patient) {
-        patient = await Doctor.findOne({
+        patient = await HealthWorker.findOne({
           verificationToken: hashedOtp,
         });
       }
@@ -305,15 +312,16 @@ export default class PatientAuth {
       // req.body.phoneNumber = req.body.phoneNumber.startsWith('+234')
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
-      let Patient = await this.patientService.getPatientDetail({
+      let user: Patient | HealthWorker;
+      user = await this.patientService.getPatientDetail({
         email: req.body.email,
       });
-      if (!Patient) {
-        Patient = await this.patientService.getOne(Doctor, {
+      if (!user) {
+        user = await this.patientService.getOne(HealthWorker, {
           email: req.body.email,
         });
       }
-      if (!Patient) throw new Error('Oops! Patient does not exist');
+      if (!user) throw new Error('Oops! Patient does not exist');
       const otp = HelperClass.generateRandomChar(6, 'num');
       const hashedToken = await this.encryptionService.hashString(otp);
       const updateBody: Pick<
@@ -323,7 +331,7 @@ export default class PatientAuth {
         passwordResetToken: hashedToken,
         passwordResetTokenExpiresAt: moment().add(10, 'minutes').utc().toDate(),
       };
-      await this.patientService.updatePatientById(Patient.id, updateBody);
+      await this.patientService.updatePatientById(user.id, updateBody);
       // if (config.enviroment === 'production') {
       //   await this.sendOtp({
       //     phoneNumber: Patient.phoneNumber,
@@ -333,8 +341,8 @@ export default class PatientAuth {
       //   });
       // }
       await this.emailService._sendPatientEmailVerificationEmail(
-        `${HelperClass.upperCase(Patient.lastName)} ${Patient.firstName}`,
-        Patient.email,
+        `${HelperClass.upperCase(user.lastName)} ${user.firstName}`,
+        user.email,
         otp,
       );
       return res.status(httpStatus.OK).json({
@@ -352,24 +360,37 @@ export default class PatientAuth {
       const hashedToken = await this.encryptionService.hashString(
         req.body.token,
       );
-      let Patient = await this.patientService.getPatientDetail({
+      let user: Patient | HealthWorker;
+      user = await this.patientService.getPatientDetail({
         passwordResetToken: hashedToken,
       });
-      if (!Patient) {
-        Patient = await this.patientService.getOne(Doctor, {
+      if (!user) {
+        user = await this.patientService.getOne(HealthWorker, {
           passwordResetToken: hashedToken,
         });
       }
-      if (!Patient) throw new Error(`Oops!, invalid otp`);
-      if (Patient.passwordResetTokenExpiresAt < moment().utc().toDate())
+      if (!user) throw new Error(`Oops!, invalid otp`);
+      if (user.passwordResetTokenExpiresAt < moment().utc().toDate())
         throw new Error(`Oops!, your token has expired`);
       const hashedPassword = await this.encryptionService.hashPassword(
         req.body.password,
       );
-      Patient.password = hashedPassword;
-      Patient.passwordResetToken = null;
-      Patient.passwordResetTokenExpiresAt = null;
-      await Patient.save();
+      const updateBody: Pick<
+        Patient,
+        'password' | 'passwordResetToken' | 'passwordResetTokenExpiresAt'
+      > = {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetTokenExpiresAt: null,
+      };
+
+      user.portfolio === PORTFOLIO.PATIENT
+        ? await this.patientService.updatePatientById(user.id, updateBody)
+        : await this.patientService.update(
+            HealthWorker,
+            { _id: user.id },
+            updateBody,
+          );
       res.status(httpStatus.OK).json({
         status: 'success',
         message: 'Password reset was successful',
@@ -384,19 +405,20 @@ export default class PatientAuth {
   async validateInviteCode(req: Request, res: Response, next: NextFunction) {
     try {
       const { inviteCode } = req.body;
-      let Patient = await this.patientService.getPatientDetail({
+      let user: Patient | HealthWorker;
+      user = await this.patientService.getPatientDetail({
         referralCode: inviteCode,
       });
-      if (!Patient) {
-        Patient = await this.patientService.getOne(Doctor, {
+      if (!user) {
+        user = await this.patientService.getOne(HealthWorker, {
           referralCode: inviteCode,
         });
       }
-      if (!Patient) throw new Error(`Oops!, invalid otp`);
+      if (!user) throw new Error(`Oops!, invalid otp`);
       res.status(httpStatus.OK).json({
         status: 'success',
         message: 'Invite code is valid',
-        Patient: `${Patient.firstName} ${Patient.lastName}`,
+        user: `${user.firstName} ${user.lastName}`,
       });
     } catch (err: unknown) {
       if (err instanceof AppException || err instanceof Error) {
@@ -418,27 +440,26 @@ export default class PatientAuth {
       const _hashedEmailToken: string = await this.encryptionService.hashString(
         req.body.otp,
       );
-      let Patient = await this.patientService.getPatientDetail({
+      let user: Patient | HealthWorker;
+      user = await this.patientService.getPatientDetail({
         'accountStatus.status': ACCOUNT_STATUS.PENDING,
         verificationToken: _hashedEmailToken,
       } as Record<string, unknown>);
-      if (!Patient) {
-        Patient = await this.patientService.getOne(Doctor, {
+      if (!user) {
+        user = await this.patientService.getOne(HealthWorker, {
           'accountStatus.status': ACCOUNT_STATUS.PENDING,
           verificationToken: _hashedEmailToken,
         } as Record<string, unknown>);
-        if (!Patient)
+        if (!user)
           throw new Error(
             `Oops!, your account has already been verified or your otp is invalid`,
           );
       }
 
-      if (
-        Patient.verificationTokenExpiry < moment().utc().startOf('day').toDate()
-      )
+      if (user.verificationTokenExpiry < moment().utc().startOf('day').toDate())
         throw new Error(`Oops!, your otp has expired`);
       const data: Pick<
-        Patient,
+        Patient | HealthWorker,
         | 'verifiedAt'
         | 'verificationToken'
         | 'verificationTokenExpiry'
@@ -452,9 +473,13 @@ export default class PatientAuth {
           reason: `Your account has been verified`,
         },
       };
-      Patient.portfolio === PORTFOLIO.PATIENT
-        ? await this.patientService.updatePatientById(Patient.id, data)
-        : await this.patientService.update(Doctor, { _id: Patient.id }, data);
+      user.portfolio === PORTFOLIO.PATIENT
+        ? await this.patientService.updatePatientById(user.id, data)
+        : await this.patientService.update(
+            HealthWorker,
+            { _id: user.id },
+            data,
+          );
       return res.status(httpStatus.OK).json({
         status: `success`,
         message: `Your account has been verified`,

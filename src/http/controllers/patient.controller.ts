@@ -9,12 +9,12 @@ import { UploadApiResponse } from 'cloudinary';
 import PatientService from '../../services/patient.service';
 import NotificationService from '../../services/notification.service';
 import { deleteFile, uploadBase64File } from '../../services/file.service';
-import Doctor from '../../database/models/healthworker.model';
+import HealthWorker from '../../database/models/health_worker.model';
 import { PORTFOLIO } from '../../../config/constants';
 import Patient from '../../database/models/patient.model';
 
 export default class PatientController {
-  constructor(private readonly PatientService: PatientService) {}
+  constructor(private readonly patientService: PatientService) {}
   async getAllPatients(req: RequestType, res: Response, next: NextFunction) {
     try {
       const options = pick(req.query, ['limit', 'page', 'populate', 'orderBy']);
@@ -28,38 +28,11 @@ export default class PatientController {
           ],
         });
       }
-      req.query.state
-        ? Object.assign(filter, { 'votingAddress.state': req.query.state })
-        : delete req.query.state;
-      req.query.lga
-        ? Object.assign(filter, { 'votingAddress.lga': req.query.lga })
-        : delete req.query.lga;
-      req.query.ward
-        ? Object.assign(filter, { 'votingAddress.ward': req.query.ward })
-        : delete req.query.ward;
-      req.query.pollingUnit
-        ? Object.assign(filter, {
-            'votingAddress.pollingUnit': req.query.pollingUnit,
-          })
-        : delete req.query.pollingUnit;
-      req.query.senatorialDistrict
-        ? Object.assign(filter, {
-            senatorialDistrict: req.query.senatorialDistrict,
-          })
-        : delete req.query.senatorialDistrict;
-      req.query.zone
-        ? Object.assign(filter, {
-            federalConstituency: req.query.zone,
-          })
-        : delete req.query.zone;
 
-      const Patients = await this.PatientService.getAllPatients(
-        filter,
-        options,
-      );
+      const patient = await this.patientService.getAllPatients(filter, options);
       return res.status(httpStatus.OK).json({
         status: 'success',
-        Patients,
+        patient,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException)
@@ -69,10 +42,11 @@ export default class PatientController {
 
   async getMyProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
-      let me = await this.PatientService.getPatientById(req.Patient.id, true);
+      let me: Patient | HealthWorker;
+      me = await this.patientService.getPatientById(req.user.id, true);
       if (!me) {
-        me = await this.PatientService.getOne(Doctor, {
-          _id: req.Patient.id,
+        me = await this.patientService.getOne(HealthWorker, {
+          _id: req.user.id,
         });
         if (!me) throw new Error('Patient not found');
       }
@@ -90,25 +64,25 @@ export default class PatientController {
   async updateMyProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
       if (req.body.avatar) {
-        if (req.Patient.avatar) {
-          await deleteFile(req.Patient.avatar.publicId);
+        if (req.user.avatar) {
+          await deleteFile(req.user.avatar.publicId);
         }
         const { secure_url, public_id } = (await uploadBase64File(
           req.body.avatar,
-          'Patient_avatar',
+          'patient_avatar',
           HelperClass.generateRandomChar(9),
         )) as UploadApiResponse;
         req.body.avatar = { url: secure_url, publicId: public_id };
       }
       let me;
-      req.Patient.portfolio === PORTFOLIO.PATIENT
-        ? (me = await this.PatientService.updatePatientById(
-            req.Patient.id,
+      req.user.portfolio === PORTFOLIO.PATIENT
+        ? (me = await this.patientService.updatePatientById(
+            req.user.id,
             req.body,
           ))
-        : (me = await this.PatientService.update(
-            Doctor,
-            { _id: req.Patient.id },
+        : (me = await this.patientService.update(
+            HealthWorker,
+            { _id: req.user.id },
             req.body,
           ));
       return res.status(httpStatus.OK).json({
@@ -130,13 +104,13 @@ export default class PatientController {
         HelperClass.generateRandomChar(9),
       );
       let me;
-      req.Patient.portfolio === PORTFOLIO.PATIENT
-        ? (me = await this.PatientService.updatePatientById(req.Patient.id, {
+      req.user.portfolio === PORTFOLIO.PATIENT
+        ? (me = await this.patientService.updatePatientById(req.user.id, {
             avatar: { url: secure_url, publicId: public_id },
           }))
-        : (me = await this.PatientService.update(
-            Doctor,
-            { _id: req.Patient.id },
+        : (me = await this.patientService.update(
+            HealthWorker,
+            { _id: req.user.id },
             {
               avatar: { url: secure_url, publicId: public_id },
             },
@@ -154,18 +128,19 @@ export default class PatientController {
 
   async getPatientProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
-      let patient = await this.PatientService.getOne(Patient, {
-        _id: req.params.Patient,
+      let user: Patient | HealthWorker;
+      user = await this.patientService.getOne(Patient, {
+        _id: req.params.patient,
       });
-      if (!patient) {
-        patient = await this.PatientService.getOne(Doctor, {
-          _id: req.params.Patient,
+      if (!user) {
+        user = await this.patientService.getOne(HealthWorker, {
+          _id: req.params.patient,
         });
-        if (!patient) throw new Error('Patient not found');
+        if (!user) throw new Error('User not found');
       }
       return res.status(httpStatus.OK).json({
         status: 'success',
-        patient,
+        user,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException) {
@@ -184,10 +159,10 @@ export default class PatientController {
           { systemCode: { $regex: req.query.q, $options: 'i' } },
         ],
       });
-      const Patient = await this.PatientService.searchPatients(filter);
+      const user = await this.patientService.searchPatients(filter);
       return res.status(httpStatus.OK).json({
         status: 'success',
-        Patient,
+        user,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException)
@@ -201,9 +176,9 @@ export default class PatientController {
     next: NextFunction,
   ) {
     try {
-      const data = await this.PatientService.savePatientDeviceInfo(
+      const data = await this.patientService.savePatientDeviceInfo(
         req.body,
-        req.Patient,
+        req.user,
       );
       return res.status(httpStatus.OK).json({
         status: 'success',

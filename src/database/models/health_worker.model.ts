@@ -4,12 +4,17 @@
 import { Schema, model } from 'mongoose';
 import paginate, { Pagination } from '../plugins/paginate.plugin';
 import toJSON from '../plugins/toJson.plugin';
-import { GENDER, PORTFOLIO, ACCOUNT_STATUS } from '../../../config/constants';
+import {
+  GENDER,
+  PORTFOLIO,
+  ACCOUNT_STATUS,
+  HEALTH_WORKER_TYPE,
+} from '../../../config/constants';
 import auditableFields from '../plugins/auditableFields.plugin';
-import { Doctor } from '../../../index';
+import { HealthWorker } from '../../../index';
 import HelperClass from '../../utils/helper';
 
-const DoctorSchema = new Schema<Doctor>(
+const HealthWorkerSchema = new Schema<HealthWorker>(
   {
     firstName: {
       type: String,
@@ -52,6 +57,10 @@ const DoctorSchema = new Schema<Doctor>(
       type: String,
       enum: Object.values(PORTFOLIO),
     },
+    healthWorkerType: {
+      type: String,
+      enum: Object.values(HEALTH_WORKER_TYPE),
+    },
     password: {
       type: String,
       required: false,
@@ -67,7 +76,7 @@ const DoctorSchema = new Schema<Doctor>(
       type: Boolean,
       default: true,
     },
-    DoctorAppVersion: String,
+    appVersion: String,
     gender: {
       type: String,
       enum: Object.values(GENDER),
@@ -75,10 +84,6 @@ const DoctorSchema = new Schema<Doctor>(
     avatar: {
       url: String,
       publicId: String,
-    },
-    dob: {
-      type: Date,
-      required: false,
     },
     referralCode: String,
     inviteCode: String,
@@ -91,39 +96,47 @@ const DoctorSchema = new Schema<Doctor>(
       },
       reason: String,
     },
-    meta: {
-      isDoctorAvailableForRide: {
-        type: Boolean,
-        default: true,
-      },
-      isDoctorAvailableForRideSubscription: {
-        type: Boolean,
-        default: true,
-      },
-      lastLogin: Date,
-      bankName: String,
-      accountNumber: String,
-      DoctorLicenseNumber: String,
-      carBrand: String,
-      carModel: String,
-      carColor: String,
-      carPlateNumber: String,
-    },
     systemCode: String,
     location: {
       latitude: Number,
       longitude: Number,
       state: String,
       country: { type: String, default: 'Nigeria' },
+      address: String,
     },
     kyc: {
-      meansOfIdentification: String,
-      identificationNumber: String,
-      identificationImage: {
-        url: String,
-        publicId: String,
+      driversLicense: {
+        number: String,
+        image: {
+          url: String,
+          publicId: String,
+        },
       },
+      medicalLicense: {
+        number: String,
+        image: {
+          url: String,
+          publicId: String,
+        },
+      },
+      medicalCertificate: {
+        number: String,
+        image: {
+          url: String,
+          publicId: String,
+        },
+      },
+      certifications: [
+        {
+          name: String,
+          image: {
+            url: String,
+            publicId: String,
+          },
+        },
+      ],
     },
+    lastLogin: Date,
     ...auditableFields,
   },
   {
@@ -144,15 +157,15 @@ const DoctorSchema = new Schema<Doctor>(
 );
 
 // add plugin that converts mongoose to json
-DoctorSchema.plugin(toJSON);
-DoctorSchema.plugin(paginate);
+HealthWorkerSchema.plugin(toJSON);
+HealthWorkerSchema.plugin(paginate);
 
 /**
- * @typedef Doctor
+ * @typedef HealthWorker
  */
-const Doctor: Pagination<Doctor> = model<Doctor, Pagination<Doctor>>(
-  'Doctor',
-  DoctorSchema,
-);
+const HealthWorker: Pagination<HealthWorker> = model<
+  HealthWorker,
+  Pagination<HealthWorker>
+>('HealthWorker', HealthWorkerSchema);
 
-export default Doctor;
+export default HealthWorker;

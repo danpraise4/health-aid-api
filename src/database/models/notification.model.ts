@@ -13,13 +13,13 @@ const notificationSchema = new Schema<Notification>(
       required: true,
       trim: true,
     },
-    Patient: {
+    patient: {
       type: Schema.Types.ObjectId,
       ref: 'Patient',
     },
-    Doctor: {
+    healthWorker: {
       type: Schema.Types.ObjectId,
-      ref: 'Doctor',
+      ref: 'HealthWorker',
     },
     meta: Object,
     read: Boolean,

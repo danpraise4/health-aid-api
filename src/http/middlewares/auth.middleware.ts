@@ -7,7 +7,8 @@ import httpStatus from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AdminService from '../../services/admin.service';
 import Admin from '../../database/models/admin.model';
-import Doctor from '../../database/models/healthworker.model';
+import HealthWorker from '../../database/models/health_worker.model';
+import Patient from '../../database/models/patient.model';
 
 export type RequestType = {
   [prop: string]: any;
@@ -39,10 +40,11 @@ export const isPatientAuthenticated = async (
       return next(
         new AppException('Oops!, wrong token type', httpStatus.FORBIDDEN),
       );
-    let Patient = await new PatientService().getPatientById(sub);
-    if (!Patient) {
-      Patient = await new PatientService().getOne(Doctor, { _id: sub });
-      if (!Patient)
+    let user: Patient | HealthWorker;
+    user = await new PatientService().getPatientById(sub);
+    if (!user) {
+      user = await new PatientService().getOne(HealthWorker, { _id: sub });
+      if (!user)
         return next(
           new AppException(
             'Oops!, Patient does not exist',
@@ -52,7 +54,7 @@ export const isPatientAuthenticated = async (
     }
 
     /** Store the result in a req object */
-    req.Patient = Patient;
+    req.user = user;
     next();
   } catch (err: any) {
     return next(

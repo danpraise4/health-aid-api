@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import {
-  CreatePatientValidator,
+  createUserValidator,
   forgotPasswordValidator,
   LoginValidator,
   RegenerateAccessToken,
@@ -20,7 +20,7 @@ import {
 
 const route = Router();
 
-route.post('/create', validate(CreatePatientValidator), (req, res, next) => {
+route.post('/create', validate(createUserValidator), (req, res, next) => {
   authController.create(req, res, next);
 });
 

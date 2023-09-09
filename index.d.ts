@@ -4,6 +4,7 @@ import {
   PORTFOLIO,
   ACCOUNT_STATUS,
   NOTIFICATION_TYPES,
+  HEALTH_WORKER_TYPE,
 } from './config/constants';
 interface PaginationOptions {
   populate?: string;
@@ -79,7 +80,7 @@ interface Patient extends AuditableFields {
     };
   };
 }
-interface Doctor extends AuditableFields {
+interface HealthWorker extends AuditableFields {
   id: string;
   _id: string;
   firstName: string;
@@ -88,7 +89,7 @@ interface Doctor extends AuditableFields {
   email: string;
   password: string;
   portfolio: PORTFOLIO;
-  residentialAddress: string;
+  healthWorkerType: HEALTH_WORKER_TYPE;
   verifiedAt: Date;
   verificationToken: string;
   verificationTokenExpiry: Date;
@@ -96,19 +97,14 @@ interface Doctor extends AuditableFields {
   passwordResetTokenExpiresAt: Date;
   pushNotificationId: string;
   allowPushNotification: boolean;
-  DoctorAppVersion?: string;
+  appVersion?: string;
   gender: GENDER;
   systemCode: string;
-  otpLogin: string;
   phoneNumber: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date;
   avatar: {
     url: string;
     publicId: string;
   };
-  dob: Date;
   deviceInfo: typeof Map;
   referralCode: string;
   inviteCode: string;
@@ -116,40 +112,44 @@ interface Doctor extends AuditableFields {
     status: ACCOUNT_STATUS;
     reason: string;
   };
-  meta?: {
-    isDoctorAvailableForRide?: boolean;
-    isDoctorAvailableForRideSubscription?: boolean;
-    lastLogin?: Date;
-    bankName?: string;
-    accountNumber?: string;
-    DoctorLicenseNumber?: string;
-    carBrand?: string;
-    carModel?: string;
-    carColor?: string;
-    carPlateNumber?: string;
-  };
-  isDoctorAvailableForRide?: boolean;
   lastLogin?: Date;
-  bankName?: string;
-  accountNumber?: string;
-  DoctorLicenseNumber?: string;
-  carBrand?: string;
-  carModel?: string;
-  carColor?: string;
-  carPlateNumber?: string;
+  healthWorkerLicenseNumber?: string;
   location: {
     latitude: number;
     longitude: number;
     state?: string;
     country?: string;
+    address?: string;
   };
   kyc: {
-    meansOfIdentification: string;
-    identificationNumber: string;
-    identificationImage: {
-      url: string;
-      publicId: string;
+    driversLicense: {
+      number: string;
+      image: {
+        url: string;
+        publicId: string;
+      };
     };
+    medicalLicense: {
+      number: string;
+      image: {
+        url: string;
+        publicId: string;
+      };
+    };
+    medicalCertificate: {
+      number: string;
+      image: {
+        url: string;
+        publicId: string;
+      };
+    };
+    certifications: {
+      name: string;
+      image: {
+        url: string;
+        publicId: string;
+      };
+    }[];
   };
 }
 
@@ -186,9 +186,9 @@ interface AuditableFields {
   createdAt?: Date;
   updatedAt?: Date | null;
   deletedAt?: Date | null;
-  createdBy?: Patient | Doctor | string;
-  updatedBy?: Patient | Doctor | string;
-  deletedBy?: Patient | Doctor | string;
+  createdBy?: Patient | HealthWorker | string;
+  updatedBy?: Patient | HealthWorker | string;
+  deletedBy?: Patient | HealthWorker | string;
 }
 
 export type ErrorTracker = {
@@ -205,8 +205,8 @@ type ObjT = {
 
 interface Notification {
   id: string;
-  Patient: Patient | string;
-  Doctor: Doctor | string;
+  patient: Patient | string;
+  healthWorker: HealthWorker | string;
   title: string;
   meta: Map;
   message: string;

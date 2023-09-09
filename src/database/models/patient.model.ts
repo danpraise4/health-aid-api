@@ -74,10 +74,10 @@ const patientSchema = new Schema<Patient>(
       url: String,
       publicId: String,
     },
-    dob: {
-      type: Date,
-      required: false,
-    },
+    // dob: {
+    //   type: Date,
+    //   required: false,
+    // },
     referralCode: String,
     inviteCode: String,
     deviceInfo: [Map],
