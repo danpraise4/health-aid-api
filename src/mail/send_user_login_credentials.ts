@@ -1,4 +1,4 @@
-const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
+const SEND_Patient_LOGIN_CREDENTIALS = (name: string, patientName: string) => `
 <!DOCTYPE html>
 
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -130,7 +130,7 @@ const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
 																		<tr>
 																			<td class="divider_inner"
 																				style="font-size: 1px; line-height: 1px; border-top: 1px solid #BBBBBB;">
-																				<span> </span></td>
+																				<span></span></td>
 																		</tr>
 																	</table>
 																</div>
@@ -160,7 +160,7 @@ const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
 																<div
 																	style="color:#000000;font-size:15px;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;font-weight:400;line-height:180%;text-align:left;direction:ltr;letter-spacing:0px;mso-line-height-alt:27px;">
 																	<p style="margin: 0;">Hey ${name}, use this
-																		credentials below to login to your  refiners
+																		credentials below to login to your refiners
 																		cooperative account<strong>.</strong></p>
 																</div>
 															</td>
@@ -175,9 +175,9 @@ const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
 																<div
 																	style="color:#000000;font-size:16px;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;font-weight:400;line-height:120%;text-align:center;direction:ltr;letter-spacing:0px;mso-line-height-alt:19.2px;">
 																	<p style="margin: 0; margin-bottom: 16px;">
-																		<strong>Username - ${username},</strong></p>
+																		<strong>patientName - ${patientName},</strong></p>
 																	<p style="margin: 0;"><strong>Password -
-																			${username}</strong></p>
+																			${patientName}</strong></p>
 																</div>
 															</td>
 														</tr>
@@ -191,7 +191,7 @@ const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
 																style="padding-top:10px;padding-right:40px;padding-bottom:10px;padding-left:45px;">
 																<div
 																	style="color:#000000;font-size:14px;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;font-weight:400;line-height:180%;text-align:left;direction:ltr;letter-spacing:0px;mso-line-height-alt:25.2px;">
-																	<p style="margin: 0;">Warm regards, <br />Refiners
+																	<p style="margin: 0;">Warm regards,<br />Refiners
 																		Cooperative</p>
 																</div>
 															</td>
@@ -229,4 +229,4 @@ const SEND_USER_LOGIN_CREDENTIALS = (name: string, username: string) => `
 
 </html>`;
 
-export default SEND_USER_LOGIN_CREDENTIALS;
+export default SEND_Patient_LOGIN_CREDENTIALS;

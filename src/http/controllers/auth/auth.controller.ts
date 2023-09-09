@@ -3,23 +3,23 @@ import { Request, Response, NextFunction } from 'express';
 import httpStatus from 'http-status';
 import moment from 'moment';
 import AuthService from '../../../services/auth.service';
-import UserService from '../../../services/user.service';
 import EncryptionService from '../../../services/encryption.service';
 import HelperClass from '../../../utils/helper';
 import { ACCOUNT_STATUS, PORTFOLIO } from '../../../../config/constants';
 import AppException from '../../../exceptions/AppException';
-import User from '../../../database/models/patient.model';
+import Patient from '../../../database/models/patient.model';
 // import SendChamp from '../../../services/sendchamp/index';
-import Doctor from '../../../database/models/doctor.model';
+import Doctor from '../../../database/models/healthworker.model';
 import EmailService from '../../../services/email.service';
+import PatientService from '../../../services/patient.service';
 // const sendChamp = new SendChamp({
 //   mode: config.sendChamp.mode,
 //   publicKey: config.sendChamp.apiKey,
 // });
-export default class UserAuth {
+export default class PatientAuth {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService,
+    private readonly patientService: PatientService,
     private readonly encryptionService: EncryptionService,
     private readonly emailService: EmailService,
   ) {}
@@ -31,23 +31,23 @@ export default class UserAuth {
         : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
 
       if (req.body.email) {
-        let emailTaken = await this.userService.getUserDetail({
+        let emailTaken = await this.patientService.getPatientDetail({
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
-        emailTaken = await this.userService.getOne(Doctor, {
+        emailTaken = await this.patientService.getOne(Doctor, {
           email: req.body.email,
         });
         if (emailTaken) throw new Error(`Oops!, ${emailTaken.email} is taken`);
       }
       delete req.body.confirmPassword;
-      let phoneNumberTaken = await this.userService.getUserDetail({
+      let phoneNumberTaken = await this.patientService.getPatientDetail({
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
         throw new Error(`Oops!, ${phoneNumberTaken.phoneNumber} is taken`);
 
-      phoneNumberTaken = await this.userService.getOne(Doctor, {
+      phoneNumberTaken = await this.patientService.getOne(Doctor, {
         phoneNumber: req.body.phoneNumber,
       });
       if (phoneNumberTaken)
@@ -57,28 +57,28 @@ export default class UserAuth {
       // req.body.lastName = HelperClass.titleCase(req.body.lastName);
       req.body.referralCode = HelperClass.generateRandomChar(6, 'upper-num');
       if (req.body.inviteCode) {
-        let user = await this.userService.getUserDetail({
+        let patient = await this.patientService.getPatientDetail({
           referralCode: req.body.inviteCode,
         });
-        if (!user) {
-          user = await this.userService.getOne(Doctor, {
+        if (!patient) {
+          patient = await this.patientService.getOne(Doctor, {
             referralCode: req.body.inviteCode,
           });
-          if (!user) throw new Error(`Oops!, invalid referral code`);
+          if (!patient) throw new Error(`Oops!, invalid referral code`);
         }
       }
       req.body.accountStatus = {
         status: ACCOUNT_STATUS.PENDING,
-        reason: 'User account is pending verification',
+        reason: 'Patient account is pending verification',
       };
-      req.body.systemCode = await HelperClass.generateSystemCode<User>(
-        User,
+      req.body.systemCode = await HelperClass.generateSystemCode<Patient>(
+        Patient,
         `${req.body.firstName} ${req.body.lastName}`,
       );
       req.body.password = await this.encryptionService.hashPassword(
         req.body.password,
       );
-      /** if user does not exist create the user using the user service */
+      /** if Patient does not exist create the Patient using the Patient service */
       const OTP_CODE = HelperClass.generateRandomChar(6, 'num');
       const hashedToken = await this.encryptionService.hashString(OTP_CODE);
       req.body.verificationToken = hashedToken;
@@ -86,37 +86,37 @@ export default class UserAuth {
         .add('1', 'day')
         .utc()
         .toDate();
-      let user: User | Doctor;
-      req.body.portfolio === PORTFOLIO.USER
-        ? (user = await this.authService.create<User>(req.body, User))
-        : (user = await this.authService.create<Doctor>(req.body, Doctor));
+      let patient: Patient | Doctor;
+      req.body.portfolio === PORTFOLIO.PATIENT
+        ? (patient = await this.authService.create<Patient>(req.body, Patient))
+        : (patient = await this.authService.create<Doctor>(req.body, Doctor));
 
-      /** Send verification code to user */
+      /** Send verification code to Patient */
       // if (config.env === 'production') {
       //   await this.sendOtp({
-      //     phoneNumber: user.phoneNumber,
-      //     firstName: user.firstName,
-      //     lastName: user.lastName,
+      //     phoneNumber: Patient.phoneNumber,
+      //     firstName: Patient.firstName,
+      //     lastName: Patient.lastName,
       //     OTP_CODE,
       //   });
 
       //   return res.status(httpStatus.OK).json({
       //     status: 'success',
       //     message: 'OTP sent successfully',
-      //     user,
+      //     Patient,
       //   });
       // }
-      await this.emailService._sendUserEmailVerificationEmail(
-        `${HelperClass.upperCase(user.lastName)} ${HelperClass.capitalCase(
-          user.firstName,
+      await this.emailService._sendPatientEmailVerificationEmail(
+        `${HelperClass.upperCase(patient.lastName)} ${HelperClass.capitalCase(
+          patient.firstName,
         )}`,
-        user.email,
+        patient.email,
         OTP_CODE,
       );
       return res.status(httpStatus.OK).json({
         status: 'success',
         message: `For testing purposes, OTP wont be sent to your phone number, but you can use this OTP -> ${OTP_CODE} to verify your account`,
-        user,
+        patient,
       });
     } catch (err: unknown) {
       if (err instanceof AppException || err instanceof Error) {
@@ -130,41 +130,41 @@ export default class UserAuth {
       // req.body.phoneNumber = req.body.phoneNumber.startsWith('+234')
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
-      let user = await User.findOne({
+      let patient = await Patient.findOne({
         email: req.body.email,
       }).select('+password');
-      if (!user) {
-        user = await Doctor.findOne({
+      if (!patient) {
+        patient = await Doctor.findOne({
           email: req.body.email,
         }).select('+password');
-        if (!user) throw new Error('Oops! invalid login credentials');
+        if (!Patient) throw new Error('Oops! invalid login credentials');
       }
       if (
         !(await this.encryptionService.comparePassword(
-          user.password,
+          patient.password,
           req.body.password,
         ))
       )
         throw new Error('Oops! invalid login credentials');
 
-      if (user.accountStatus.status !== ACCOUNT_STATUS.CONFIRMED)
+      if (patient.accountStatus.status !== ACCOUNT_STATUS.CONFIRMED)
         throw Error('Oops! account is not verified');
       const token = await this.authService.login(
-        user as unknown as { [key: string]: string },
+        Patient as unknown as { [key: string]: string },
       );
 
-      user.portfolio === PORTFOLIO.USER
-        ? await this.userService.updateUserById(user.id, {
+      patient.portfolio === PORTFOLIO.PATIENT
+        ? await this.patientService.updatePatientById(patient.id, {
             pushNotificationId: req.body.pushNotificationId,
           })
-        : await this.userService.update(
+        : await this.patientService.update(
             Doctor,
-            { _id: user.id },
+            { _id: patient.id },
             {
               pushNotificationId: req.body.pushNotificationId,
             },
           );
-      return res.status(httpStatus.ACCEPTED).json({ user, token });
+      return res.status(httpStatus.ACCEPTED).json({ patient, token });
     } catch (err: unknown) {
       if (err instanceof AppException || err instanceof Error)
         return next(new AppException(err.message, httpStatus.BAD_REQUEST));
@@ -173,10 +173,10 @@ export default class UserAuth {
 
   async regenerateAccessToken(req: Request, res: Response, next: NextFunction) {
     try {
-      // const user = await this.
-      const accessToken = await this.authService.regenerateAccessToken<User>(
+      // const Patient = await this.
+      const accessToken = await this.authService.regenerateAccessToken<Patient>(
         req.body.refreshToken,
-        User,
+        Patient,
       );
       if (!accessToken || accessToken.trim() === '')
         return next(
@@ -221,37 +221,37 @@ export default class UserAuth {
       // req.body.phoneNumber = req.body.phoneNumber.startsWith('+234')
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
-      let user = await User.findOne({
+      let patient = await Patient.findOne({
         email: req.body.email,
       });
-      if (!user) {
-        user = await Doctor.findOne({
+      if (!patient) {
+        patient = await Doctor.findOne({
           email: req.body.email,
         });
       }
-      if (!user) throw new Error('Oops! user does not exist');
-      if (user.accountStatus.status === ACCOUNT_STATUS.CONFIRMED)
+      if (!patient) throw new Error('Oops! Patient does not exist');
+      if (patient.accountStatus.status === ACCOUNT_STATUS.CONFIRMED)
         throw new Error(`Oops!, account has already been verified`);
       const otp = HelperClass.generateRandomChar(6, 'num');
       const hashedToken = await this.encryptionService.hashString(otp);
 
       const updateBody: Pick<
-        User,
+        Patient,
         'verificationToken' | 'verificationTokenExpiry'
       > = {
         verificationToken: hashedToken,
         verificationTokenExpiry: moment().add('10', 'minutes').utc().toDate(),
       };
-      await this.userService.updateUserById(user.id, updateBody);
+      await this.patientService.updatePatientById(patient.id, updateBody);
       // await this.sendOtp({
-      //   phoneNumber: user.phoneNumber,
-      //   firstName: user.firstName,
-      //   lastName: user.lastName,
+      //   phoneNumber: Patient.phoneNumber,
+      //   firstName: Patient.firstName,
+      //   lastName: Patient.lastName,
       //   otp,
       // });
-      await this.emailService._sendUserEmailVerificationEmail(
-        `${HelperClass.upperCase(user.lastName)} ${user.firstName}`,
-        user.email,
+      await this.emailService._sendPatientEmailVerificationEmail(
+        `${HelperClass.upperCase(patient.lastName)} ${patient.firstName}`,
+        patient.email,
         otp,
       );
       return res.status(httpStatus.OK).json({
@@ -268,29 +268,29 @@ export default class UserAuth {
   async verifyOtp(req: Request, res: Response, next: NextFunction) {
     try {
       const hashedOtp = await this.encryptionService.hashString(req.body.otp);
-      let user = await User.findOne({
+      let patient = await Patient.findOne({
         verificationToken: hashedOtp,
       });
-      if (!user) {
-        user = await Doctor.findOne({
+      if (!patient) {
+        patient = await Doctor.findOne({
           verificationToken: hashedOtp,
         });
       }
-      if (!user) throw new Error('Oops! user does not exist');
-      if (user.verificationTokenExpiry < new Date())
+      if (!patient) throw new Error('Oops! Patient does not exist');
+      if (patient.verificationTokenExpiry < new Date())
         throw new Error('Oops!, otp has expired');
-      user.verificationToken = null;
-      user.verificationTokenExpiry = null;
-      user.save();
+      patient.verificationToken = null;
+      patient.verificationTokenExpiry = null;
+      patient.save();
       const token = await this.authService.login(
-        user as unknown as { [key: string]: string },
+        Patient as unknown as { [key: string]: string },
       );
-      await this.userService.updateUserById(user.id, {
+      await this.patientService.updatePatientById(patient.id, {
         pushNotificationId: req.body.pushNotificationId,
       });
       return res.status(httpStatus.OK).json({
         status: 'success',
-        user: user,
+        Patient: Patient,
         token,
       });
     } catch (err: unknown) {
@@ -305,36 +305,36 @@ export default class UserAuth {
       // req.body.phoneNumber = req.body.phoneNumber.startsWith('+234')
       //   ? req.body.phoneNumber
       //   : `+234${req.body.phoneNumber.replace(/^0+/, '')}`;
-      let user = await this.userService.getUserDetail({
+      let Patient = await this.patientService.getPatientDetail({
         email: req.body.email,
       });
-      if (!user) {
-        user = await this.userService.getOne(Doctor, {
+      if (!Patient) {
+        Patient = await this.patientService.getOne(Doctor, {
           email: req.body.email,
         });
       }
-      if (!user) throw new Error('Oops! user does not exist');
+      if (!Patient) throw new Error('Oops! Patient does not exist');
       const otp = HelperClass.generateRandomChar(6, 'num');
       const hashedToken = await this.encryptionService.hashString(otp);
       const updateBody: Pick<
-        User,
+        Patient,
         'passwordResetToken' | 'passwordResetTokenExpiresAt'
       > = {
         passwordResetToken: hashedToken,
         passwordResetTokenExpiresAt: moment().add(10, 'minutes').utc().toDate(),
       };
-      await this.userService.updateUserById(user.id, updateBody);
+      await this.patientService.updatePatientById(Patient.id, updateBody);
       // if (config.enviroment === 'production') {
       //   await this.sendOtp({
-      //     phoneNumber: user.phoneNumber,
-      //     firstName: user.firstName,
-      //     lastName: user.lastName,
+      //     phoneNumber: Patient.phoneNumber,
+      //     firstName: Patient.firstName,
+      //     lastName: Patient.lastName,
       //     otp,
       //   });
       // }
-      await this.emailService._sendUserEmailVerificationEmail(
-        `${HelperClass.upperCase(user.lastName)} ${user.firstName}`,
-        user.email,
+      await this.emailService._sendPatientEmailVerificationEmail(
+        `${HelperClass.upperCase(Patient.lastName)} ${Patient.firstName}`,
+        Patient.email,
         otp,
       );
       return res.status(httpStatus.OK).json({
@@ -352,24 +352,24 @@ export default class UserAuth {
       const hashedToken = await this.encryptionService.hashString(
         req.body.token,
       );
-      let user = await this.userService.getUserDetail({
+      let Patient = await this.patientService.getPatientDetail({
         passwordResetToken: hashedToken,
       });
-      if (!user) {
-        user = await this.userService.getOne(Doctor, {
+      if (!Patient) {
+        Patient = await this.patientService.getOne(Doctor, {
           passwordResetToken: hashedToken,
         });
       }
-      if (!user) throw new Error(`Oops!, invalid otp`);
-      if (user.passwordResetTokenExpiresAt < moment().utc().toDate())
+      if (!Patient) throw new Error(`Oops!, invalid otp`);
+      if (Patient.passwordResetTokenExpiresAt < moment().utc().toDate())
         throw new Error(`Oops!, your token has expired`);
       const hashedPassword = await this.encryptionService.hashPassword(
         req.body.password,
       );
-      user.password = hashedPassword;
-      user.passwordResetToken = null;
-      user.passwordResetTokenExpiresAt = null;
-      await user.save();
+      Patient.password = hashedPassword;
+      Patient.passwordResetToken = null;
+      Patient.passwordResetTokenExpiresAt = null;
+      await Patient.save();
       res.status(httpStatus.OK).json({
         status: 'success',
         message: 'Password reset was successful',
@@ -384,19 +384,19 @@ export default class UserAuth {
   async validateInviteCode(req: Request, res: Response, next: NextFunction) {
     try {
       const { inviteCode } = req.body;
-      let user = await this.userService.getUserDetail({
+      let Patient = await this.patientService.getPatientDetail({
         referralCode: inviteCode,
       });
-      if (!user) {
-        user = await this.userService.getOne(Doctor, {
+      if (!Patient) {
+        Patient = await this.patientService.getOne(Doctor, {
           referralCode: inviteCode,
         });
       }
-      if (!user) throw new Error(`Oops!, invalid otp`);
+      if (!Patient) throw new Error(`Oops!, invalid otp`);
       res.status(httpStatus.OK).json({
         status: 'success',
         message: 'Invite code is valid',
-        user: `${user.firstName} ${user.lastName}`,
+        Patient: `${Patient.firstName} ${Patient.lastName}`,
       });
     } catch (err: unknown) {
       if (err instanceof AppException || err instanceof Error) {
@@ -408,7 +408,7 @@ export default class UserAuth {
   async verifyAccount(req: Request, res: Response, next: NextFunction) {
     try {
       /**
-       * Check if the hashed token sent to the user has not being tampered with
+       * Check if the hashed token sent to the Patient has not being tampered with
        * Check if the token is the same with the one stores in the database
        * check if the email has not being verified
        * check if the token has expired
@@ -418,25 +418,27 @@ export default class UserAuth {
       const _hashedEmailToken: string = await this.encryptionService.hashString(
         req.body.otp,
       );
-      let user = await this.userService.getUserDetail({
+      let Patient = await this.patientService.getPatientDetail({
         'accountStatus.status': ACCOUNT_STATUS.PENDING,
         verificationToken: _hashedEmailToken,
       } as Record<string, unknown>);
-      if (!user) {
-        user = await this.userService.getOne(Doctor, {
+      if (!Patient) {
+        Patient = await this.patientService.getOne(Doctor, {
           'accountStatus.status': ACCOUNT_STATUS.PENDING,
           verificationToken: _hashedEmailToken,
         } as Record<string, unknown>);
-        if (!user)
+        if (!Patient)
           throw new Error(
             `Oops!, your account has already been verified or your otp is invalid`,
           );
       }
 
-      if (user.verificationTokenExpiry < moment().utc().startOf('day').toDate())
+      if (
+        Patient.verificationTokenExpiry < moment().utc().startOf('day').toDate()
+      )
         throw new Error(`Oops!, your otp has expired`);
       const data: Pick<
-        User,
+        Patient,
         | 'verifiedAt'
         | 'verificationToken'
         | 'verificationTokenExpiry'
@@ -450,9 +452,9 @@ export default class UserAuth {
           reason: `Your account has been verified`,
         },
       };
-      user.portfolio === PORTFOLIO.USER
-        ? await this.userService.updateUserById(user.id, data)
-        : await this.userService.update(Doctor, { _id: user.id }, data);
+      Patient.portfolio === PORTFOLIO.PATIENT
+        ? await this.patientService.updatePatientById(Patient.id, data)
+        : await this.patientService.update(Doctor, { _id: Patient.id }, data);
       return res.status(httpStatus.OK).json({
         status: `success`,
         message: `Your account has been verified`,

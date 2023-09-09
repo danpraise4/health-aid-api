@@ -13,9 +13,9 @@ const notificationSchema = new Schema<Notification>(
       required: true,
       trim: true,
     },
-    user: {
+    Patient: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Patient',
     },
     Doctor: {
       type: Schema.Types.ObjectId,

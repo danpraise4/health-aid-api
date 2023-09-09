@@ -49,7 +49,7 @@ export default class EmailService {
   /** Send email takes the following parameters:
    * type - refers to the type of the email eg WelcomeEmail
    * to - refers to who you are sending the email to
-   * data - refers to what you want to send to the user
+   * data - refers to what you want to send to the Patient
    */
   async _sendMail(type: string, email: string, data: Data) {
     const mailOptions: EmailOptions = {
@@ -96,7 +96,7 @@ export default class EmailService {
     return await this._sendMail('WELCOME_EMAIL', email, { fullName });
   }
 
-  async _sendUserEmailVerificationEmail(
+  async _sendPatientEmailVerificationEmail(
     fullName: string,
     email: string,
     token: string,
@@ -107,7 +107,7 @@ export default class EmailService {
     });
   }
 
-  async _sendUserPasswordResetInstructionEmail(
+  async _sendPatientPasswordResetInstructionEmail(
     fullName: string,
     email: string,
     token: string,

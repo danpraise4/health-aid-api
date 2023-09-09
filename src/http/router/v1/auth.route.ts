@@ -1,16 +1,16 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import {
-  CreateUserValidator,
+  CreatePatientValidator,
   forgotPasswordValidator,
   LoginValidator,
   RegenerateAccessToken,
   ResetPasswordValidator,
-  verifyUserEmailValidator,
+  verifyPatientEmailValidator,
   resendOtpValidator,
   validateInviteCode,
   createAdminValidator,
   AdminLoginValidator,
-  ResendUserEmailVerificationValidator,
+  ResendPatientEmailVerificationValidator,
 } from '../../../validators/auth-validator';
 import validate from '../../middlewares/validate';
 import {
@@ -20,32 +20,32 @@ import {
 
 const route = Router();
 
-route.post('/user/create', validate(CreateUserValidator), (req, res, next) => {
+route.post('/create', validate(CreatePatientValidator), (req, res, next) => {
   authController.create(req, res, next);
 });
 
 route.post(
-  '/user/verify-account',
-  validate(verifyUserEmailValidator),
+  '/verify-account',
+  validate(verifyPatientEmailValidator),
   (req, res, next) => {
     authController.verifyAccount(req, res, next);
   },
 );
 
 route.post(
-  '/user/validate-invite-code',
+  '/validate-invite-code',
   validate(validateInviteCode),
   (req, res, next) => {
     authController.validateInviteCode(req, res, next);
   },
 );
 
-route.post('/user/login', validate(LoginValidator), (req, res, next) => {
+route.post('/login', validate(LoginValidator), (req, res, next) => {
   authController.login(req, res, next);
 });
 
 route.post(
-  '/user/regenerate-access-token',
+  '/regenerate-access-token',
   validate(RegenerateAccessToken),
   (req, res, next) => {
     authController.regenerateAccessToken(req, res, next);
@@ -53,15 +53,15 @@ route.post(
 );
 
 route.post(
-  '/user/resend-otp',
-  validate(ResendUserEmailVerificationValidator),
+  '/resend-otp',
+  validate(ResendPatientEmailVerificationValidator),
   (req, res, next) => {
     authController.resendOtp(req, res, next);
   },
 );
 
 route.post(
-  '/user/forgot-password',
+  '/Patient/forgot-password',
   validate(forgotPasswordValidator),
   (req: Request, res: Response, next: NextFunction) => {
     authController.passwordReset(req, res, next);
@@ -69,7 +69,7 @@ route.post(
 );
 
 route.post(
-  '/user/reset-password',
+  '/reset-password',
   validate(ResetPasswordValidator),
   (req: Request, res: Response, next: NextFunction) => {
     authController.resetPassword(req, res, next);
@@ -86,7 +86,7 @@ route.post(
 
 route.post(
   '/admin/verify-account',
-  validate(verifyUserEmailValidator),
+  validate(verifyPatientEmailValidator),
   (req, res, next) => {
     adminAuthController.verifyEmail(req, res, next);
   },

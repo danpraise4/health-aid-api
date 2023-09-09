@@ -50,7 +50,7 @@ export const AdminLoginValidator = {
   }),
 };
 
-export const CreateUserValidator = {
+export const CreatePatientValidator = {
   body: Joi.object().keys({
     firstName: Joi.string().min(3).lowercase().max(40).required(),
     lastName: Joi.string().min(3).lowercase().max(40).required(),
@@ -94,7 +94,7 @@ export const CreateUserValidator = {
       .valid(...Object.values(GENDER)),
     inviteCode: Joi.string().optional(),
     meta: Joi.when('portfolio', {
-      is: PORTFOLIO.Doctor,
+      is: PORTFOLIO.DOCTOR,
       then: Joi.object().keys({
         bankName: Joi.string().required(),
         accountNumber: Joi.string().required(),
@@ -115,7 +115,7 @@ export const VerifyOtpValidator = {
   }),
 };
 
-export const ResendUserEmailVerificationValidator = {
+export const ResendPatientEmailVerificationValidator = {
   body: Joi.object().keys({
     email: Joi.string()
       .email({
@@ -145,7 +145,7 @@ export const ResetPasswordValidator = {
   }),
 };
 
-export const verifyUserEmailValidator = {
+export const verifyPatientEmailValidator = {
   body: Joi.object().keys({
     otp: Joi.string().required(),
   }),
@@ -176,7 +176,7 @@ export const resendOtpValidator = {
   }),
 };
 
-export const updateUserAccount = {
+export const updatePatientAccount = {
   body: Joi.object().keys({
     firstName: Joi.string().min(3).lowercase().max(40).optional(),
     lastName: Joi.string().min(3).lowercase().max(40).optional(),

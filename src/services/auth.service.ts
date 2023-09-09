@@ -65,7 +65,7 @@ export default class AuthService {
     Object.assign(data, updateBody);
     await data.save();
 
-    await this.emailService._sendUserEmailVerificationEmail(
+    await this.emailService._sendPatientEmailVerificationEmail(
       `${actor.firstName} ${actor.lastName}`,
       actor.email,
       otp,

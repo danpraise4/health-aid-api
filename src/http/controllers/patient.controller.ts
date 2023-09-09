@@ -6,16 +6,16 @@ import { RequestType } from '../middlewares/auth.middleware';
 import pick from '../../utils/pick';
 import HelperClass from '../../utils/helper';
 import { UploadApiResponse } from 'cloudinary';
-import UserService from '../../services/user.service';
+import PatientService from '../../services/patient.service';
 import NotificationService from '../../services/notification.service';
 import { deleteFile, uploadBase64File } from '../../services/file.service';
-import User from '../../database/models/patient.model';
-import Doctor from '../../database/models/doctor.model';
+import Doctor from '../../database/models/healthworker.model';
 import { PORTFOLIO } from '../../../config/constants';
+import Patient from '../../database/models/patient.model';
 
-export default class UserController {
-  constructor(private readonly userService: UserService) {}
-  async getAllUsers(req: RequestType, res: Response, next: NextFunction) {
+export default class PatientController {
+  constructor(private readonly PatientService: PatientService) {}
+  async getAllPatients(req: RequestType, res: Response, next: NextFunction) {
     try {
       const options = pick(req.query, ['limit', 'page', 'populate', 'orderBy']);
       const filter = pick(req.query, ['accountStatus', 'portfolio']);
@@ -53,10 +53,13 @@ export default class UserController {
           })
         : delete req.query.zone;
 
-      const users = await this.userService.getAllUsers(filter, options);
+      const Patients = await this.PatientService.getAllPatients(
+        filter,
+        options,
+      );
       return res.status(httpStatus.OK).json({
         status: 'success',
-        users,
+        Patients,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException)
@@ -66,12 +69,12 @@ export default class UserController {
 
   async getMyProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
-      let me = await this.userService.getUserById(req.user.id, true);
+      let me = await this.PatientService.getPatientById(req.Patient.id, true);
       if (!me) {
-        me = await this.userService.getOne(Doctor, {
-          _id: req.user.id,
+        me = await this.PatientService.getOne(Doctor, {
+          _id: req.Patient.id,
         });
-        if (!me) throw new Error('User not found');
+        if (!me) throw new Error('Patient not found');
       }
 
       return res.status(httpStatus.OK).json({
@@ -87,22 +90,25 @@ export default class UserController {
   async updateMyProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
       if (req.body.avatar) {
-        if (req.user.avatar) {
-          await deleteFile(req.user.avatar.publicId);
+        if (req.Patient.avatar) {
+          await deleteFile(req.Patient.avatar.publicId);
         }
         const { secure_url, public_id } = (await uploadBase64File(
           req.body.avatar,
-          'user_avatar',
+          'Patient_avatar',
           HelperClass.generateRandomChar(9),
         )) as UploadApiResponse;
         req.body.avatar = { url: secure_url, publicId: public_id };
       }
       let me;
-      req.user.portfolio === PORTFOLIO.USER
-        ? (me = await this.userService.updateUserById(req.user.id, req.body))
-        : (me = await this.userService.update(
+      req.Patient.portfolio === PORTFOLIO.PATIENT
+        ? (me = await this.PatientService.updatePatientById(
+            req.Patient.id,
+            req.body,
+          ))
+        : (me = await this.PatientService.update(
             Doctor,
-            { _id: req.user.id },
+            { _id: req.Patient.id },
             req.body,
           ));
       return res.status(httpStatus.OK).json({
@@ -120,17 +126,17 @@ export default class UserController {
       const file = req.file;
       const { secure_url, public_id } = await uploadBase64File(
         file.path,
-        'user_avatar',
+        'Patient_avatar',
         HelperClass.generateRandomChar(9),
       );
       let me;
-      req.user.portfolio === PORTFOLIO.USER
-        ? (me = await this.userService.updateUserById(req.user.id, {
+      req.Patient.portfolio === PORTFOLIO.PATIENT
+        ? (me = await this.PatientService.updatePatientById(req.Patient.id, {
             avatar: { url: secure_url, publicId: public_id },
           }))
-        : (me = await this.userService.update(
+        : (me = await this.PatientService.update(
             Doctor,
-            { _id: req.user.id },
+            { _id: req.Patient.id },
             {
               avatar: { url: secure_url, publicId: public_id },
             },
@@ -146,20 +152,20 @@ export default class UserController {
     }
   }
 
-  async getUserProfile(req: RequestType, res: Response, next: NextFunction) {
+  async getPatientProfile(req: RequestType, res: Response, next: NextFunction) {
     try {
-      let user = await this.userService.getOne(User, {
-        _id: req.params.user,
+      let patient = await this.PatientService.getOne(Patient, {
+        _id: req.params.Patient,
       });
-      if (!user) {
-        user = await this.userService.getOne(Doctor, {
-          _id: req.params.user,
+      if (!patient) {
+        patient = await this.PatientService.getOne(Doctor, {
+          _id: req.params.Patient,
         });
-        if (!user) throw new Error('User not found');
+        if (!patient) throw new Error('Patient not found');
       }
       return res.status(httpStatus.OK).json({
         status: 'success',
-        user,
+        patient,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException) {
@@ -168,7 +174,7 @@ export default class UserController {
     }
   }
 
-  async searchUsers(req: RequestType, res: Response, next: NextFunction) {
+  async searchPatients(req: RequestType, res: Response, next: NextFunction) {
     try {
       const filter = {};
       Object.assign(filter, {
@@ -178,10 +184,10 @@ export default class UserController {
           { systemCode: { $regex: req.query.q, $options: 'i' } },
         ],
       });
-      const user = await this.userService.searchUsers(filter);
+      const Patient = await this.PatientService.searchPatients(filter);
       return res.status(httpStatus.OK).json({
         status: 'success',
-        user,
+        Patient,
       });
     } catch (err: unknown) {
       if (err instanceof Error || err instanceof AppException)
@@ -189,15 +195,15 @@ export default class UserController {
     }
   }
 
-  async saveUserDeviceInfo(
+  async savePatientDeviceInfo(
     req: RequestType,
     res: Response,
     next: NextFunction,
   ) {
     try {
-      const data = await this.userService.saveUserDeviceInfo(
+      const data = await this.PatientService.savePatientDeviceInfo(
         req.body,
-        req.user,
+        req.Patient,
       );
       return res.status(httpStatus.OK).json({
         status: 'success',
@@ -211,7 +217,7 @@ export default class UserController {
 
   async getNotifications(req: RequestType, res: Response, next: NextFunction) {
     try {
-      const filter = pick(req.query, ['user']);
+      const filter = pick(req.query, ['Patient']);
       const options = pick(req.query, ['limit', 'page', 'populate', 'orderBy']);
       const data = await NotificationService.getAllNotifications(
         filter,

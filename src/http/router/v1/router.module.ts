@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import authRoute from './auth.route';
-import userRoute from './user.route';
+import PatientRoute from './patient.route';
 
 const router = Router();
 
 const defaultRoutes = [
   { path: '/auth', route: authRoute },
-  { path: '/user', route: userRoute },
+  { path: '/patient', route: PatientRoute },
 ];
 
 defaultRoutes.forEach(({ path, route }) => {

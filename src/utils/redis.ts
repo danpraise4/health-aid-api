@@ -10,8 +10,8 @@ export default class RedisClient {
     return await this.client.set(key, value);
   }
 
-  async getUserSocket(userId: string): Promise<string | null> {
-    const socket = await this.client.get(userId);
+  async getPatientSocket(patientId: string): Promise<string | null> {
+    const socket = await this.client.get(patientId);
     if (socket) {
       return socket;
     }

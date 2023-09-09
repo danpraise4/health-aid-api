@@ -6,14 +6,14 @@ import RedisClient from './redis';
 import config from '../../config/default';
 import { WS_EVENT } from '../../config/constants';
 import mongoose from 'mongoose';
-import UserService from '../services/user.service';
-import Doctor from '../database/models/doctor.model';
-const userService = new UserService();
+import PatientService from '../services/patient.service';
+import Doctor from '../database/models/healthworker.model';
+const patientService = new PatientService();
 
 export default class WS {
   public io: Server;
   private redis: RedisClient = new RedisClient(config.redis.url);
-  private user: string;
+  private Patient: string;
   constructor(io: Server) {
     this.io = io;
     this.setupSocket();
@@ -23,24 +23,24 @@ export default class WS {
     this.io.on(
       WS_EVENT.CONNECTION,
       async (socket: Socket<DefaultEventsMap>) => {
-        const { user } = socket.handshake.query;
-        const user_previous_socket = await this.redis.getUserSocket(
-          user as string,
+        const { Patient } = socket.handshake.query;
+        const Patient_previous_socket = await this.redis.getPatientSocket(
+          Patient as string,
         );
-        this.user = user as string;
-        if (user_previous_socket) {
-          await this.redis.delete(user as string);
+        this.Patient = Patient as string;
+        if (Patient_previous_socket) {
+          await this.redis.delete(Patient as string);
         }
-        await this.redis.set(user as string, socket.id);
+        await this.redis.set(Patient as string, socket.id);
         log.info(`${socket.id} connected`);
-        // this.handleUserConnection(socket);
+        // this.handlePatientConnection(socket);
         this.setupEventHandlers(socket);
         socket.emit(WS_EVENT.CONNECTED, { message: 'Connected to socket' });
         socket.on(WS_EVENT.DISCONNECT, async () => {
           log.info(`${socket.id} disconnected`);
           socket.emit(`${socket.id} disconnected`);
-          const { user } = socket.handshake.query;
-          await this.redis.delete(user as string);
+          const { Patient } = socket.handshake.query;
+          await this.redis.delete(Patient as string);
           socket.disconnect();
         });
       },
@@ -54,9 +54,9 @@ export default class WS {
         log.info(
           `Message from ${socket.id} to ${data.recipientId}: ${data.message}`,
         );
-        log.info(this.user);
+        log.info(this.Patient);
         this.io
-          .to(await this.redis.getUserSocket(data.recipientId))
+          .to(await this.redis.getPatientSocket(data.recipientId))
           .emit('receive_message', {
             from: socket.id,
             message: data.message,
@@ -67,7 +67,7 @@ export default class WS {
     // Handle joining a room
     socket.on(WS_EVENT.JOIN_ROOM, (roomName: string) => {
       socket.join(roomName);
-      log.info(`User ${socket.id} joined room ${roomName}`);
+      log.info(`Patient ${socket.id} joined room ${roomName}`);
     });
 
     // Handle message events
@@ -88,8 +88,8 @@ export default class WS {
     );
   }
 
-  async emitEventToClient(user: string, eventName: string, data: any) {
-    const socketId = await this.redis.getUserSocket(user);
+  async emitEventToClient(Patient: string, eventName: string, data: any) {
+    const socketId = await this.redis.getPatientSocket(Patient);
     if (socketId) {
       this.io.sockets.sockets.get(socketId)?.emit(eventName, data);
     }
@@ -101,17 +101,17 @@ export async function socketUserMiddleware(
   next: (err?: Error) => void,
 ) {
   try {
-    let { user } = socket.handshake.query;
-    user = user as string;
-    if (!user) throw new Error('Oops!, user must be provided');
-    if (!mongoose.Types.ObjectId.isValid(user))
+    let { Patient } = socket.handshake.query;
+    Patient = Patient as string;
+    if (!Patient) throw new Error('Oops!, Patient must be provided');
+    if (!mongoose.Types.ObjectId.isValid(Patient))
       throw new Error('invalid Id format ');
-    let user_details = await userService.getUserById(user);
-    if (!user_details) {
-      user_details = await userService.getOne(Doctor, { _id: user });
-      if (!user_details) throw new Error('Oops!, user not found');
+    let Patient_details = await patientService.getPatientById(Patient);
+    if (!Patient_details) {
+      Patient_details = await patientService.getOne(Doctor, { _id: Patient });
+      if (!Patient_details) throw new Error('Oops!, Patient not found');
     }
-    socket.handshake.query.user = user_details.id;
+    socket.handshake.query.Patient = Patient_details.id;
     next();
   } catch (error) {
     log.error(error);

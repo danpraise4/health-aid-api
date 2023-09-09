@@ -12,7 +12,7 @@ let PRIVATE_KEY = '';
   try {
     PRIVATE_KEY = await readFile(
       join(__dirname, '../certs/private_key.pem'),
-      'utf8'
+      'utf8',
     );
   } catch (err: any) {
     log.error(err.message);
@@ -24,7 +24,7 @@ let PUBLIC_KEY = '';
   try {
     PUBLIC_KEY = await readFile(
       join(__dirname, '../certs/public_key.pem'),
-      'utf8'
+      'utf8',
     );
   } catch (err: any) {
     log.error(err.message);
@@ -38,7 +38,7 @@ export default class TokenService {
    */
   private async _generateAccessToken(
     id: string | number,
-    name: string
+    name: string,
   ): Promise<string> {
     const token = jwt.sign({ sub: id, name, type: 'access' }, PRIVATE_KEY, {
       algorithm: 'RS512',
@@ -50,7 +50,7 @@ export default class TokenService {
 
   private async _generateRefreshToken(
     id: string | number,
-    name: string
+    name: string,
   ): Promise<string> {
     const token = jwt.sign({ sub: id, name, type: 'refresh' }, PRIVATE_KEY, {
       algorithm: 'RS512',
@@ -62,7 +62,7 @@ export default class TokenService {
 
   async generateToken(
     id: string | number,
-    name: string
+    name: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const accessToken = await this._generateAccessToken(id, name);
     const refreshToken = await this._generateRefreshToken(id, name);
@@ -85,7 +85,7 @@ export default class TokenService {
     }
   }
 
-  /**Generate token that will be sent to the users email for verification
+  /**Generate token that will be sent to the Patients email for verification
    * Generate random string using randomBytes from node crypto library
    */
   async TokenGenerator() {

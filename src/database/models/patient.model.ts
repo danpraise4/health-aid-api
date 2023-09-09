@@ -4,10 +4,10 @@ import paginate, { Pagination } from '../plugins/paginate.plugin';
 import toJSON from '../plugins/toJson.plugin';
 import { GENDER, PORTFOLIO, ACCOUNT_STATUS } from '../../../config/constants';
 import auditableFields from '../plugins/auditableFields.plugin';
-import { User } from '../../../index';
+import { Patient } from '../../../index';
 import HelperClass from '../../utils/helper';
 
-const userSchema = new Schema<User>(
+const patientSchema = new Schema<Patient>(
   {
     firstName: {
       type: String,
@@ -65,7 +65,7 @@ const userSchema = new Schema<User>(
       type: Boolean,
       default: true,
     },
-    userAppVersion: String,
+    appVersion: String,
     gender: {
       type: String,
       enum: Object.values(GENDER),
@@ -90,24 +90,6 @@ const userSchema = new Schema<User>(
       reason: String,
     },
     systemCode: String,
-    location: {
-      latitude: Number,
-      longitude: Number,
-      state: String,
-      country: { type: String, default: 'Nigeria' },
-    },
-    kyc: {
-      meansOfIdentification: String,
-      identificationNumber: String,
-      identificationImage: {
-        url: String,
-        publicId: String,
-      },
-    },
-    subscription: {
-      type: Schema.Types.ObjectId,
-      ref: 'Subscription',
-    },
     ...auditableFields,
   },
   {
@@ -120,7 +102,7 @@ const userSchema = new Schema<User>(
         delete ret.passwordResetTokenExpiresAt;
         delete ret.__v;
         delete ret.password;
-        delete ret.emailVerificationTokenExpiry;
+        delete ret.verificationTokenExpiry;
         return ret;
       },
     },
@@ -128,15 +110,15 @@ const userSchema = new Schema<User>(
 );
 
 // add plugin that converts mongoose to json
-userSchema.plugin(toJSON);
-userSchema.plugin(paginate);
+patientSchema.plugin(toJSON);
+patientSchema.plugin(paginate);
 
 /**
- * @typedef User
+ * @typedef Patient
  */
-const User: Pagination<User> = model<User, Pagination<User>>(
-  'User',
-  userSchema,
+const Patient: Pagination<Patient> = model<Patient, Pagination<Patient>>(
+  'Patient',
+  patientSchema,
 );
 
-export default User;
+export default Patient;

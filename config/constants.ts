@@ -12,8 +12,8 @@ export enum ACCOUNT_STATUS {
 }
 
 export enum PORTFOLIO {
-  USER = 'user',
-  Doctor = 'Doctor',
+  PATIENT = 'patient',
+  DOCTOR = 'doctor',
 }
 
 export enum PAYMENT_SOURCE {
@@ -45,7 +45,7 @@ export enum TRANSACTION_SOURCES {
   STASH = 'stash',
   REVERSAL = 'reversal',
   SUBSCRIPTION = 'subscription',
-  USER_TRANSFER = 'user_transfer',
+  Patient_TRANSFER = 'Patient_transfer',
   REFERRAL_BONUS = 'referral_bonus',
 }
 
@@ -136,7 +136,7 @@ export enum SUBSCRIPTION_PLANS {
   monthly = 'monthly',
 }
 
-export enum USER_GROUP_SUBSCRIPTION_STATUS {
+export enum Patient_GROUP_SUBSCRIPTION_STATUS {
   ACCEPTED = 'accepted',
   PENDING = 'pending',
   REJECTED = 'rejected',
@@ -204,7 +204,7 @@ export enum WS_EVENT {
   INITIATE_RIDE_SUBSCRIPTION_RESPONSE = 'initiate_ride_subscription_response',
   INITIATE_RIDE_HIRE_REQUEST = 'initiate_ride_hire_request',
   UPDATE_Doctor_LOCATION = 'update_Doctor_location',
-  UPDATE_USER_LOCATION = 'update_user_location',
+  UPDATE_Patient_LOCATION = 'update_Patient_location',
   JOIN_ROOM = 'join_room',
   SEND_LIVE_LOCATION = 'send_live_location',
   RECEIVE_LIVE_LOCATION = 'receive_live_location',
@@ -213,28 +213,28 @@ export enum WS_EVENT {
   GET_NEARBY_DoctorS = 'get_nearby_Doctors',
   IN_APP_TRANSFER_REQUEST = 'in_app_transfer_request',
   IN_APP_TRANSFER_RESPONSE = 'in_app_transfer_response',
-  GET_USER_WALLET_BY_SYSTEM_CODE = 'get_user_wallet_by_system_code',
-  GET_USER_BALANCE = 'get_user_balance',
+  GET_Patient_WALLET_BY_SYSTEM_CODE = 'get_Patient_wallet_by_system_code',
+  GET_Patient_BALANCE = 'get_Patient_balance',
 }
 
 export enum MIXPANEL_EVENTS {
-  LOGIN = 'User Logged In',
-  SIGNUP = 'User Signed Up',
-  VERIFY_ACCOUNT = 'User Verified Account',
-  RIDE_REQUEST = 'User requested ride',
+  LOGIN = 'Patient Logged In',
+  SIGNUP = 'Patient Signed Up',
+  VERIFY_ACCOUNT = 'Patient Verified Account',
+  RIDE_REQUEST = 'Patient requested ride',
   Doctor_ACCEPTED_RIDE_REQUEST = 'Doctor accepted ride request',
   Doctor_CANCELLED_RIDE = 'Doctor cancelled ride',
   Doctor_COMPLETED_RIDE = 'Doctor completed ride',
-  WITHDRAW = 'User Withdraws money',
-  INITIATE_CARD_PAYMENT = 'User initiates card payment',
-  IN_APP_PAYMENT = 'User makes in-app payment',
-  DEDICATED_WALLET_CREATED = 'User creates dedicated wallet',
-  CREATE_GROUP_RIDE_SUBSCRIPTION = 'User creates group ride subscription',
-  CREATE_INDIVIDUAL_RIDE_SUBSCRIPTION = 'User creates individual ride subscription',
-  JOIN_GROUP_RIDE_SUBSCRIPTION = 'User joins group ride subscription',
-  INITIATE_RIDE_HIRE_REQUEST = 'User initiates ride hire request',
+  WITHDRAW = 'Patient Withdraws money',
+  INITIATE_CARD_PAYMENT = 'Patient initiates card payment',
+  IN_APP_PAYMENT = 'Patient makes in-app payment',
+  DEDICATED_WALLET_CREATED = 'Patient creates dedicated wallet',
+  CREATE_GROUP_RIDE_SUBSCRIPTION = 'Patient creates group ride subscription',
+  CREATE_INDIVIDUAL_RIDE_SUBSCRIPTION = 'Patient creates individual ride subscription',
+  JOIN_GROUP_RIDE_SUBSCRIPTION = 'Patient joins group ride subscription',
+  INITIATE_RIDE_HIRE_REQUEST = 'Patient initiates ride hire request',
   ACCEPT_RIDE_HIRE_REQUEST = 'Doctor accepts ride hire request',
-  ADDED_TO_GROUP_RIDE_SUBSCRIPTION = 'User added to group ride subscription',
-  INITIATE_CARD_PAYMENT_FOR_RIDE_SUBSCRIPTION = 'User initiates card payment for ride subscription',
+  ADDED_TO_GROUP_RIDE_SUBSCRIPTION = 'Patient added to group ride subscription',
+  INITIATE_CARD_PAYMENT_FOR_RIDE_SUBSCRIPTION = 'Patient initiates card payment for ride subscription',
   ACCEPT_RIDE_SUBSCRIPTION_REQUEST = 'Doctor accepts ride subscription request',
 }

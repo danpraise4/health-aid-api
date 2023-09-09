@@ -3,17 +3,17 @@ import AuthService from '../../../services/auth.service';
 import EmailService from '../../../services/email.service';
 import EncryptionService from '../../../services/encryption.service';
 import TokenService from '../../../services/token.service';
-import UserService from '../../../services/user.service';
+import PatientService from '../../../services/patient.service';
 import AdminAuth from './admin.auth';
-import UserAuth from './auth.controller';
+import PatientAuth from './auth.controller';
 
-export const authController = new UserAuth(
+export const authController = new PatientAuth(
   new AuthService(
     new EncryptionService(),
     new TokenService(),
     new EmailService(),
   ),
-  new UserService(),
+  new PatientService(),
   new EncryptionService(),
   new EmailService(),
 );

@@ -67,7 +67,7 @@ export default class AdminAuth {
       /** Setup admin wallet */
       //   await this.CaesarService.setupAccount<Admin>(data, {});
       /** Send email verification to Admin */
-      // await emailService._sendUserEmailVerificationEmail(
+      // await emailService._sendPatientEmailVerificationEmail(
       //   `${data.firstName} ${data.lastName}`,
       //   data.email,
       //   OTP_CODE,
@@ -178,7 +178,7 @@ export default class AdminAuth {
         updateBody,
       );
 
-      await emailService._sendUserPasswordResetInstructionEmail(
+      await emailService._sendPatientPasswordResetInstructionEmail(
         `${adminExists.firstName} ${adminExists.lastName}`,
         adminExists.email,
         token,

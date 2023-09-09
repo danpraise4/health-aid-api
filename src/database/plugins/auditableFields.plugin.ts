@@ -7,17 +7,17 @@ const auditableFields = {
    */
   createdBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Patient',
     required: false,
   },
   updatedBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Patient',
     required: false,
   },
   deletedBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Patient',
     required: false,
   },
   deletedAt: {
