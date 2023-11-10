@@ -237,6 +237,7 @@ export enum APPOINTMENT_TYPE {
 
 export enum APPOINTMENT_CHANNEL {
   VIDEO = 'video',
+  IN_PERSON = 'in_person',
   AUDIO = 'audio',
 }
 
