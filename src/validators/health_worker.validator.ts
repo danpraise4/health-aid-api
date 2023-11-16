@@ -6,6 +6,7 @@ export const updateKyc = {
       .keys({
         driversLicense: Joi.object()
           .keys({
+            typeId : Joi.string().optional(),
             number: Joi.string().required(),
             image: Joi.string().required().uri(),
           })

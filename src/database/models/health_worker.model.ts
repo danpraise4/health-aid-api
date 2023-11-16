@@ -113,6 +113,7 @@ const HealthWorkerSchema = new Schema<HealthWorker>(
       driversLicense: {
         number: Number,
         image: String,
+        typeId: String,
       },
       medicalLicense: {
         number: Number,
