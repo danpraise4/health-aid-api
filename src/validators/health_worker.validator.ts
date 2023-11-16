@@ -34,6 +34,13 @@ export const updateKyc = {
       .optional(),
     specialization: Joi.array().items(Joi.string().optional()),
     experience: Joi.array().items(Joi.string().optional()),
+    homeLocation: Joi.object().keys({
+      latitude: Joi.number().optional(),
+      longitude: Joi.number().optional(),
+      state: Joi.string().optional(),
+      country: Joi.string().optional(),
+      address: Joi.string().optional(),
+    }),
     location: Joi.object().keys({
       latitude: Joi.number().optional(),
       longitude: Joi.number().optional(),

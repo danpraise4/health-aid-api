@@ -109,6 +109,16 @@ const HealthWorkerSchema = new Schema<HealthWorker>(
       country: { type: String, default: 'Nigeria' },
       address: String,
     },
+    homeLocation: {
+      type: { type: String, default: 'Point', enum: ['Point'] },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+      state: String,
+      country: { type: String, default: 'Nigeria' },
+      address: String,
+    },
     kyc: {
       driversLicense: {
         number: Number,

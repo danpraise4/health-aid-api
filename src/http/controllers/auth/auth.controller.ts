@@ -477,7 +477,7 @@ export default class PatientAuth {
       if (user.verificationTokenExpiry < moment().utc().startOf('day').toDate())
         throw new Error(`Oops!, your otp has expired`);
 
-        
+      ///
       const data: Pick<
         Patient | HealthWorker,
         | 'verifiedAt'
@@ -497,7 +497,7 @@ export default class PatientAuth {
         ? await this.userService.updatePatientById(user.id, data)
         : await this.userService.update(HealthWorker, { _id: user.id }, data);
 
-        /// 
+      ///
       await this.paymentService.setupAccount<typeof user>(user);
       return res.status(httpStatus.OK).json({
         status: `success`,
