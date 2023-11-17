@@ -96,7 +96,7 @@ export default class WS {
 
     socket.on(
       WS_EVENT.REQUEST_DOCTOR_EVENT,
-      async (data: {[key: string]: string}) => {
+      async (data: {[key: string]: any}) => {
         const socketId = await this.redis.getPatientSocket(data['hw_id']);
         if (socketId) {
           this.io.sockets.sockets
