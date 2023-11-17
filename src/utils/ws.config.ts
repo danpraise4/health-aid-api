@@ -94,6 +94,18 @@ export default class WS {
       log.info(`Patient ${socket.id} joined room ${roomName}`);
     });
 
+    socket.on(
+      WS_EVENT.REQUEST_DOCTOR_EVENT,
+      async (hw_id: string, data: Object) => {
+        const socketId = await this.redis.getPatientSocket(hw_id);
+        if (socketId) {
+          this.io.sockets.sockets
+            .get(socketId)
+            ?.emit(WS_EVENT.REQUEST_DOCTOR_EVENT, data);
+        }
+      },
+    );
+
     // Handle message events
     socket.on(
       WS_EVENT.SEND_LIVE_LOCATION,

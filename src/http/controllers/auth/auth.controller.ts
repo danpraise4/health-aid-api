@@ -117,6 +117,9 @@ export default class PatientAuth {
       //     Patient,
       //   });
       // }
+
+
+      
       await this.emailService._sendPatientEmailVerificationEmail(
         `${HelperClass.upperCase(patient.lastName)} ${HelperClass.capitalCase(
           patient.firstName,

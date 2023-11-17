@@ -205,6 +205,7 @@ export enum WS_EVENT {
   GET_NEARBY_HEALTH_WORKS = 'get_nearby_HealthWorkers',
   IN_APP_TRANSFER_REQUEST = 'in_app_transfer_request',
   IN_APP_TRANSFER_RESPONSE = 'in_app_transfer_response',
+  REQUEST_DOCTOR_EVENT = 'request_doctor_event',
 }
 
 export enum MIXPANEL_EVENTS {
