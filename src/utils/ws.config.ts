@@ -108,9 +108,14 @@ export default class WS {
 
     socket.on(WS_EVENT.ACCEPT_REQUEST, async (data: { [key: string]: any }) => {
       const socketId = await this.redis.getPatientSocket(data['user_id']);
+      const socketId1 = await this.redis.getPatientSocket(data['data']["hw_id"]);
       if (socketId) {
         this.io.sockets.sockets
           .get(socketId)
+          ?.emit(WS_EVENT.ACCEPT_REQUEST, data['data']);
+
+        this.io.sockets.sockets
+          .get(socketId1)
           ?.emit(WS_EVENT.ACCEPT_REQUEST, data['data']);
       }
     });
