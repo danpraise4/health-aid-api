@@ -195,6 +195,7 @@ export enum WS_EVENT {
   CONNECTED = 'connected',
   DISCONNECT = 'disconnect',
   REQUEST_ERROR = 'request_error',
+  ACCEPT_REQUEST = 'accept_request',
   UPDATE_HEALTH_WORKER_LOCATION = 'update_health_worker_location',
   UPDATE_Patient_LOCATION = 'update_Patient_location',
   JOIN_ROOM = 'join_room',

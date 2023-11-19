@@ -96,15 +96,24 @@ export default class WS {
 
     socket.on(
       WS_EVENT.REQUEST_DOCTOR_EVENT,
-      async (data: {[key: string]: any}) => {
+      async (data: { [key: string]: any }) => {
         const socketId = await this.redis.getPatientSocket(data['hw_id']);
         if (socketId) {
           this.io.sockets.sockets
             .get(socketId)
-            ?.emit(WS_EVENT.REQUEST_DOCTOR_EVENT, data["data"]);
+            ?.emit(WS_EVENT.REQUEST_DOCTOR_EVENT, data['data']);
         }
       },
     );
+
+    socket.on(WS_EVENT.ACCEPT_REQUEST, async (data: { [key: string]: any }) => {
+      const socketId = await this.redis.getPatientSocket(data['user_id']);
+      if (socketId) {
+        this.io.sockets.sockets
+          .get(socketId)
+          ?.emit(WS_EVENT.ACCEPT_REQUEST, data['data']);
+      }
+    });
 
     // Handle message events
     socket.on(
