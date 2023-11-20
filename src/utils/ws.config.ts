@@ -107,16 +107,18 @@ export default class WS {
     );
 
     socket.on(WS_EVENT.ACCEPT_REQUEST, async (data: { [key: string]: any }) => {
-      const socketId = await this.redis.getPatientSocket(data['user_id']);
-      const socketId1 = await this.redis.getPatientSocket(data['data']["hw_id"]);
-      if (socketId) {
+      const toPatient = await this.redis.getPatientSocket(data['patient_id']);
+      const toDoctor = await this.redis.getPatientSocket(data['doctor_id']);
+      if (toPatient) {
         this.io.sockets.sockets
-          .get(socketId)
-          ?.emit(WS_EVENT.ACCEPT_REQUEST, data['data']);
+          .get(toPatient)
+          ?.emit(WS_EVENT.ACCEPT_REQUEST, data);
 
-        this.io.sockets.sockets
-          .get(socketId1)
-          ?.emit(WS_EVENT.ACCEPT_REQUEST, data['data']);
+        if (toDoctor) {
+          this.io.sockets.sockets
+            .get(toDoctor)
+            ?.emit(WS_EVENT.ACCEPT_REQUEST, data);
+        }
       }
     });
 
