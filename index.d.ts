@@ -204,7 +204,7 @@ interface HealthWorker extends AuditableFields {
   };
   kyc?: {
     driversLicense: {
-      number: number;
+      number: string;
       typeId: string;
       image: {
         url: string;
