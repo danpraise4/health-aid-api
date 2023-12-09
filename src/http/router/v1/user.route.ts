@@ -7,8 +7,8 @@ import {
   updatePatientAccount,
 } from '../../../validators/auth-validator';
 import { updateKyc } from '../../../validators/health_worker.validator';
-import { restrictAccessTo } from '../../middlewares/role.middleware';
-import { PORTFOLIO } from '../../../../config/constants';
+// import { restrictAccessTo } from '../../middlewares/role.middleware';
+// import { PORTFOLIO } from '../../../../config/constants';
 
 const router = Router();
 
@@ -41,7 +41,7 @@ router
   .patch(
     isUserAuthenticated,
     validate(updateKyc),
-    restrictAccessTo(PORTFOLIO.HEALTH_WORKER),
+    // restrictAccessTo(PORTFOLIO.HEALTH_WORKER),
     (req, res, next) => {
       userController.completeProfile(req, res, next);
     },
